@@ -1,0 +1,32 @@
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  .title {
+    text-align: center;
+    color: #333;
+  }
+  
+  .estado-enviado {
+    color: green;
+    font-weight: bold;
+  }
+  
+  .estado-pendiente {
+    color: orange;
+    font-weight: bold;
+  }
+  
+  .estado-cancelado {
+    color: red;
+    font-weight: bold;
+  }
+  
+  .alert {
+    text-align: center;
+    padding: 10px;
+    border-radius: 5px;
+  }
+  

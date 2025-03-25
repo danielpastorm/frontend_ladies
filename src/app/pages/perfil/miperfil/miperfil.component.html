@@ -1,0 +1,171 @@
+<div class="profile-container" *ngIf="!loading; else loadingTemplate">
+
+    <p-dialog header="Iniciar Sesión" [(visible)]="displayLogin" modal="true" [style]="{'width': '30rem'}">
+        <div class="grid ">
+
+            <div class="col-12 md:col-12 lg:col-12 p-2 m-2 flex align-items-center justify-content-center">
+                <p-floatLabel variant="on" class="">
+                    <input pInputText type="text" [(ngModel)]="loginModel.email" autocomplete="off" id="correo" />
+                    <label for="correo">Correo</label>
+                </p-floatLabel>
+            </div>
+
+            <div class="col-12 md:col-12 lg:col-12 p-2 m-2 flex align-items-center justify-content-center">
+                <p-floatLabel variant="on">
+                    <p-password [(ngModel)]="loginModel.password" toggleMask="true" id="contra"
+                        [feedback]="false"></p-password>
+                    <label for="contra">Contraseña</label>
+                </p-floatLabel>
+            </div>
+
+            <div class="col-12 md:col-12 lg:col-12 p-2 m-2 flex align-items-center justify-content-center">
+                <p-button label="Iniciar sesión" (click)="login()" [loading]="isLoggingOut"></p-button>
+            </div>
+
+        </div>
+
+
+
+
+
+    </p-dialog>
+
+    <p-dialog header="Registrarse" [(visible)]="displayRegister" modal="true" [style]="{'width': '40rem'}">
+
+        <div class="p-fluid grid">
+            <!-- Nombre -->
+            <div class="col-12 pt-4 m-2">
+                <p-floatLabel>
+                    <input pInputText type="text" [(ngModel)]="registerModel.nombre" id="nombre" class="w-full"/>
+                    <label for="nombre">Nombre</label>
+                </p-floatLabel>
+            </div>
+
+            <!-- Email -->
+            <div class="col-12 pt-3 m-2">
+                <p-floatLabel>
+                    <input pInputText type="email" [(ngModel)]="registerModel.email" id="email" class="w-full"/>
+                    <label for="email">Correo</label>
+                </p-floatLabel>
+            </div>
+
+            <!-- Contraseña -->
+            <div class="col-12 pt-3 m-2 ">
+                <p-floatLabel>
+                    <p-password [(ngModel)]="registerModel.password" toggleMask="true" id="password" class="w-full"></p-password>
+                    <label for="password">Contraseña</label>
+                </p-floatLabel>
+            </div>
+
+            <!-- Fecha de Nacimiento -->
+            <div class="col-12 pt-3 m-2">
+                <p-calendar [(ngModel)]="registerModel.fechaNacimiento" id="fechaNacimiento" dateFormat="yy-mm-dd"
+                    [showIcon]="true"></p-calendar>
+
+            </div>
+
+            <!-- Calle -->
+            <div class="col-12 pt-3 ">
+                <p-floatLabel>
+                    <input pInputText type="text" [(ngModel)]="registerModel.calle" id="calle" class="w-full"/>
+                    <label for="calle">Calle</label>
+                </p-floatLabel>
+            </div>
+
+            <!-- Número -->
+            <div class="col-12 pt-3">
+                <p-floatLabel>
+                    <input pInputText type="text" [(ngModel)]="registerModel.numero" id="numero" class="w-full"/>
+                    <label for="numero">Número</label>
+                </p-floatLabel>
+            </div>
+
+            <!-- Colonia -->
+            <div class="col-12 pt-3">
+                <p-floatLabel>
+                    <input pInputText type="text" [(ngModel)]="registerModel.colonia" id="colonia" class="w-full"/>
+                    <label for="colonia">Colonia</label>
+                </p-floatLabel>
+            </div>
+
+            <!-- Código Postal -->
+            <div class="col-12 pt-3">
+                <p-floatLabel>
+                    <input pInputText type="text" [(ngModel)]="registerModel.codigoPostal" id="codigoPostal" class="w-full"/>
+                    <label for="codigoPostal">Código Postal</label>
+                </p-floatLabel>
+            </div>
+
+            <!-- Ciudad -->
+            <div class="col-12 pt-3">
+                <p-floatLabel>
+                    <input pInputText type="text" [(ngModel)]="registerModel.ciudad" id="ciudad" class="w-full"/>
+                    <label for="ciudad">Ciudad</label>
+                </p-floatLabel>
+            </div>
+
+            <!-- Estado -->
+            <div class="col-12 pt-3">
+                <p-floatLabel>
+                    <input pInputText type="text" [(ngModel)]="registerModel.estado" id="estado" class="w-full"/>
+                    <label for="estado">Estado</label>
+                </p-floatLabel>
+            </div>
+            <p *ngIf="error" class="col-12 p-2 flex align-items-center justify-content-center danger">{{error_string}} </p>
+            <!-- Botón de Registro -->
+            <div class="col-12 p-2 flex align-items-center justify-content-center">
+                <p-button [loading]="registering" label="Registrarse" (click)="register()"></p-button>
+            </div>
+        </div>
+
+
+
+
+
+
+    </p-dialog>
+
+    <div *ngIf="errorMessage; else profileContent" class="error-wrapper">
+        <div class="error-container">
+            <h2 class="error-title">¡Ups! Parece que no estás registrada</h2>
+            <p class="suggestion">Para disfrutar de todas las ventajas de nuestro ecommerce, te invitamos a registrarte
+                y formar parte de nuestra comunidad.</p>
+            <button (click)="showRegisterModal()" class="btn-register">
+                Regístrate ahora
+            </button>
+            <button (click)="showLoginModal()" class="btn-register">
+                Inicia Sesión
+            </button>
+        </div>
+    </div>
+
+
+    <ng-template #profileContent>
+        <h2>Mi Perfil</h2>
+        <div class="profile-card">
+            <div class="profile-row">
+                <label>Nombre:</label>
+                <span>{{ profile.nombre }}</span>
+            </div>
+            <div class="profile-row">
+                <label>Email:</label>
+                <span>{{ profile.email }}</span>
+            </div>
+            <div class="profile-row">
+                <label>Fecha de Nacimiento:</label>
+                <span>{{ profile.fechaNacimiento | date:'longDate' }}</span>
+            </div>
+            <div class="profile-row">
+                <label>Dirección:</label>
+                <span>
+                    {{ profile.calle }} No. {{ profile.numero }}, Col. {{ profile.colonia }} <br />
+                    CP: {{ profile.codigoPostal }}, {{ profile.ciudad }}, {{ profile.estado }}
+                </span>
+            </div>
+        </div>
+    </ng-template>
+</div>
+
+<ng-template #loadingTemplate>
+    <p>Loading profile...</p>
+</ng-template>

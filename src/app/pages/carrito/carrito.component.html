@@ -1,0 +1,46 @@
+<div class="cart-container">
+  <h2>Tu Carrito de Compras</h2>
+  <!-- Botón de Checkout -->
+  <div class="checkout-container">
+    <div class="checkout-button">
+      <p-button label="Proceder al Pago" icon="pi pi-credit-card" (click)="pagar()"></p-button>
+    </div>
+  </div>
+
+
+  <!-- Tabla de productos -->
+  <p-table [value]="cartItems" [paginator]="true" [rows]="5" responsiveLayout="scroll">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Producto</th>
+        <th>Cantidad</th>
+        <th>Subtotal</th>
+        <th>Acción</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-product>
+      <tr>
+        <td>{{ product.name }} - {{ product.price | currency }}</td>
+        <td>
+          <p-inputNumber [(ngModel)]="product.quantity" [min]="1"
+            (onChange)="updateQuantity(product, product.quantity)"></p-inputNumber>
+        </td>
+        <td>{{ product.price * product.quantity | currency }}</td>
+        <td>
+          <p-button icon="pi pi-trash" severity="danger" (click)="removeProduct(product)"></p-button>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="footer">
+      <tr>
+        <td colspan="2" class="total-label">Total:</td>
+        <td colspan="2" class="total-value">{{ getTotal() | currency }}</td>
+      </tr>
+    </ng-template>
+  </p-table>
+
+
+
+
+
+</div>

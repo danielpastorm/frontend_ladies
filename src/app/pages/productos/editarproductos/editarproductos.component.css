@@ -1,0 +1,62 @@
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  padding: 16px;
+}
+
+.product-card {
+  background: white;
+  padding: 16px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.product-card:hover {
+  transform: scale(1.05);
+}
+
+.product-image img {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.edit-button {
+  margin-top: 10px;
+}
+
+
+.image-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 0.5rem;
+}
+
+.image-item {
+  position: relative;
+}
+
+.image-item img {
+  width: 100%;
+  height: auto;
+  max-height: 150px; /* Tamaño reducido */
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+/* Estilo personalizado para el botón de eliminación */
+.delete-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  /* Opcional: Ajusta el tamaño interno del botón */
+  min-width: 28px;
+  min-height: 28px;
+  padding: 0;
+}

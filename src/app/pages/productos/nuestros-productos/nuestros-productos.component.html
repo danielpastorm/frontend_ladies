@@ -1,0 +1,62 @@
+<div class="card">
+    <p-toast></p-toast>
+    <div class="product-grid">
+        <div *ngFor="let kitGroup of kitsGrouped" class="product-card">
+            <!-- Si en el futuro quieres mostrar una imagen del kit, puedes usar la sección product-image -->
+            <!-- Carrusel de imágenes -->
+
+
+            <div *ngIf="kitGroup.imagenes && kitGroup.imagenes.trim().length > 0" class="image-container">
+                <p-carousel [value]="getKitImages(kitGroup.imagenes)" [numVisible]="1" [circular]="true"
+                    [autoplayInterval]="3000">
+                    <ng-template pTemplate="item" let-image>
+                        <div class="image-item">
+                            <img [src]="'https://ladies-first.shop/uploads/kit_' + kitGroup.kitId + '/' + image"
+                                alt="Imagen del kit">
+                        </div>
+                    </ng-template>
+                </p-carousel>
+            </div>
+
+
+            <div class="product-info">
+                <!-- Datos del kit -->
+                <h3>{{ kitGroup.kitNombre }}</h3>
+                <p>{{ kitGroup.kitDescripcion }}</p>
+                <p>
+                    <strong>Precio Total:</strong>
+                    {{ kitGroup.kitPrecio | currency }}
+                </p>
+                <p>
+                    <strong>Disponible:</strong>
+                    {{ kitGroup.disponible ? 'Sí' : 'No' }}
+                </p>
+                <hr>
+                <!-- Lista de productos -->
+                <h4>Productos</h4>
+                <ul>
+                    <li *ngFor="let prod of kitGroup.productos">
+                        <strong>{{ prod.nombreProducto }}</strong> &ndash;
+                        Cantidad: {{ prod.cantidad }} &ndash;
+                        Precio Unitario: {{ prod.precioUnitario | currency }}
+                    </li>
+                </ul>
+
+                <!-- Botón para agregar el kit al carrito -->
+                <button class="btn-add-to-cart" title="Agregar al carrito" (click)="addKitToCart(kitGroup)">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                        <path
+                            d="M397.78 316h-205.13a15 15 0 0 1-14.65-11.67l-34.54-150.48a15 15 0 0 1 14.62-18.36h274.27a15 15 0 0 1 14.65 18.36l-34.6 150.48a15 15 0 0 1-14.62 11.67zm-193.19-30h181.25l27.67-120.48h-236.6z" />
+                        <path
+                            d="M222 450a57.48 57.48 0 1 1 57.48-57.48 57.54 57.54 0 0 1-57.48 57.48zm0-84.95a27.48 27.48 0 1 0 27.48 27.47 27.5 27.5 0 0 0-27.48-27.47z" />
+                        <path
+                            d="M368.42 450a57.48 57.48 0 1 1 57.48-57.48 57.54 57.54 0 0 1-57.48 57.48zm0-84.95a27.48 27.48 0 1 0 27.48 27.47 27.5 27.5 0 0 0-27.48-27.47z" />
+                        <path
+                            d="M158.08 165.49a15 15 0 0 1-14.23-10.26l-25.71-77.23h-47.44a15 15 0 1 1 0-30h58.3a15 15 0 0 1 14.23 10.26l29.13 87.49a15 15 0 0 1-14.23 19.74z" />
+                    </svg>
+                </button>
+
+            </div>
+        </div>
+    </div>
+</div>

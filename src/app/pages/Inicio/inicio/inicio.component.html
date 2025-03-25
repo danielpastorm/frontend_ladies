@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ladies First - Bienestar Femenino</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="hero-container">
+    <!-- Contenido principal (Hero) -->
+    <div class="hero-content">
+      <h1>Tu bienestar, <br> nuestra prioridad</h1>
+      <p class="hero-subtitle">Productos femeninos a tu puerta para cuidarte y sentirte bien.</p>
+      <button class="cta-button" onclick="irARegistro()">Regístrate y arma tu kit</button>
+    </div>
+  
+    <!-- Botón de emergencia (SOS) -->
+    <button class="sos-button" onclick="botonEmergencia()">SOS</button>
+  </div>
+  
+  <!-- Footer -->
+  <footer class="landing-footer">
+    <div class="footer-column">
+      <h2>Ladies First</h2>
+      <p>Tu bienestar, nuestra prioridad. Productos femeninos a tu puerta.</p>
+    </div>
+    <div class="footer-column">
+      <h3>Contacto</h3>
+      <p>Email: contacto&#64; ladiesfirst.com</p>
+      <p>Tel: +52 55 2020 2200</p>
+    </div>
+    <div class="footer-column">
+      <h3>Información</h3>
+      <a href="#">Aviso de privacidad</a>
+      <a href="#">Términos de uso</a>
+    </div>
+  </footer>
+  
+  <script>
+    function irARegistro() {
+      // Aquí rediriges al componente de registro, por ejemplo:
+      window.location.href = "/registro";
+    }
+    function botonEmergencia() {
+      // Aquí puedes definir la acción de emergencia (ej. abrir modal, enviar alerta, etc.)
+      alert("Se ha activado el botón SOS. Por favor, espera asistencia.");
+    }
+  </script>
+</body>
+</html>

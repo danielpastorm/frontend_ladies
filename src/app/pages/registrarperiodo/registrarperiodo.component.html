@@ -1,0 +1,28 @@
+<div class="register-period-container mt-4">
+  <h2>Registrar Ciclo Menstrual</h2>
+
+  <div class="form-section">
+    <label for="last-period">Fecha de tu último periodo:</label>
+    <input type="date" id="last-period" [(ngModel)]="fechas.Fecha_Periodo">
+  </div>
+
+  <div class="form-section">
+    <label for="cycle-length">Duración de tu ciclo (en días):</label>
+    <input type="number" id="cycle-length" min="21" max="35" placeholder="Ej. 28" [(ngModel)]="fechas.DiasPeriodo">
+  </div>
+
+  <button pButton label="Calcular Envío" class="calculate-button" (click)="calculateShippingDate()"></button>
+
+  <div *ngIf="shippingDate" class="result-section">
+    <p>Tu próximo envío se realizará aproximadamente el <strong> <input type="date" id="last-period"
+          [(ngModel)]="date_string">
+      </strong></p>
+
+      <p>puedes confirmar la fecha o modificarla</p>
+
+    </div>
+    
+    <p-button (click)="registrar()">Registrar fecha de envio</p-button>
+
+  
+</div>

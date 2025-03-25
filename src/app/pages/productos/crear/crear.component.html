@@ -1,0 +1,54 @@
+<form [formGroup]="productForm" (ngSubmit)="onSubmit()">
+  <div class="grid">
+    <!-- Botón Guardar (envía el formulario) -->
+    <div class="col-12 md:col-12 text-right px-5 mt-4">
+      <p-button label="Guardar" type="submit"></p-button>
+    </div>
+    
+
+    <!-- Detalles del producto -->
+    <div class="col-12 md:col-6">
+      <p-card header="Detalles del producto">
+        <!-- Nombre -->
+        <p-iconfield>
+          <p-inputicon styleClass="pi pi-circle-on"></p-inputicon>
+          <input type="text" pInputText placeholder="Nombre" formControlName="nombre" />
+        </p-iconfield>
+        <div *ngIf="productForm.get('nombre')?.invalid && productForm.get('nombre')?.touched" class="p-error">
+          El nombre es obligatorio.
+        </div>
+        
+
+        <!-- Descripción -->
+        <p-iconfield style="margin-top: 10px; margin-bottom: 20px;">
+          <p-inputicon styleClass="pi pi-circle-on"></p-inputicon>
+          <input type="text" pInputText placeholder="Descripción" formControlName="descripcion" />
+
+          <div *ngIf="productForm.get('descripcion')?.invalid && productForm.get('descripcion')?.touched" class="p-error">
+            La descripcion es obligatoria.
+          </div>
+  
+        </p-iconfield>
+     
+        <!-- Disponible -->
+        <span style="margin-top: 20px;">Disponible?</span>
+        <p-togglebutton formControlName="disponible" onIcon="pi pi-check" offIcon="pi pi-times" styleClass="w-full sm:w-40" aria-label="Confirmation"></p-togglebutton>
+      </p-card>
+    </div>
+
+    <!-- Precio -->
+    <div class="col-12 md:col-6">
+      <p-card header="Precio">
+        <p-inputnumber inputId="minmaxfraction" mode="decimal" [minFractionDigits]="2" [maxFractionDigits]="5" formControlName="precio"></p-inputnumber>
+        <div *ngIf="productForm.get('precio')?.invalid && productForm.get('precio')?.touched" class="p-error">
+          El precio es obligatorio.
+        </div>
+      </p-card>
+      
+    </div>
+    
+
+
+   
+  </div>
+</form>

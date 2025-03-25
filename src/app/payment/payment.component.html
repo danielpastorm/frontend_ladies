@@ -1,0 +1,15 @@
+<main class="form-checkout w-100 m-auto">
+    <div>
+      <img class="mb-5" src="https://therightsw.com/wp-content/uploads/2023/10/TRSLogo.png" alt="" height="40">
+      <h1 class="h3 mb-4 fw-normal">Angular Stripe Payment</h1>
+  
+      <div class="form-floating mb-2">
+        <input type="number" clarol" id="floatingAmount" placeholder="Amount" [(ngModel)]="stripeAmount"
+          required>
+        <label for="floatingAmount">Amount</label>
+      </div>
+  
+      <button class="btn btn-primary w-100 py-2" type="submit" ss="form-cont(click)="checkout()">Pay Now <span *ngIf="isLoading"
+          class="spinner-border spinner-border-sm" aria-hidden="true"></span></button>
+    </div>
+  </main>

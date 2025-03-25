@@ -1,0 +1,102 @@
+<div class="h-full w-full flex flex-col">
+
+    <!-- Tabla con espacio disponible -->
+    <div class="flex-1 overflow-hidden">
+        <div class="flex justify-end mb-2">
+            <button pButton label="Limpiar filtros" icon="pi pi-filter-slash" (click)="limpiarFiltros()"
+                class="p-button-secondary"></button>
+        </div>
+        <p-table #dt [value]="compras" [paginator]="true" [rows]="5" [rowsPerPageOptions]="[5, 10, 20]"
+            [showCurrentPageReport]="true" [globalFilterFields]="['fecha', 'estado']" [filterDelay]="0"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} pedidos" scrollable="true"
+            scrollHeight="flex" styleClass="p-datatable-striped p-datatable-gridlines p-datatable-sm w-full">
+
+            <!-- Sticky header -->
+            <ng-template pTemplate="header">
+                <tr>
+                    <th>
+                        Fecha<br />
+                        <p-calendar [showIcon]="true" dateFormat="dd/mm/yy" (onSelect)="filtrarPorFecha($event)"
+                            placeholder="Selecciona una fecha">
+                        </p-calendar>
+                    </th>
+                    <th>
+                        Nombre
+                    </th>
+                    <th>Total</th>
+                    <th>
+                        Estado<br />
+                        <p-dropdown [options]="estadosDisponibles"
+                            (onChange)="dt.filter($event.value, 'estado', 'equals')" placeholder="Todos">
+                        </p-dropdown>
+                    </th>
+                    <th>Detalles</th>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-compra>
+                <tr>
+                    <td>{{ compra.fecha }}</td>
+                    <td>{{ compra.nombre }}</td>
+                    <td>$ {{ compra.total | number:'1.2-2' }}</td>
+                    <td>
+                        <p-message [severity]="getStatusSeverity(compra.estado)" text="{{ compra.estado }}">
+                        </p-message>
+                    </td>
+                    <td>
+                        <button pButton icon="pi pi-eye" (click)="verDetalles(compra)" label="Ver">
+                        </button>
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </div>
+
+    <!-- Diálogos -->
+    <p-dialog [(visible)]="detalleVisible" [modal]="true" header="Detalles de la Compra" [style]="{width: '50vw'}">
+        <div *ngIf="compraSeleccionada">
+            <div class="flex justify-content-center mb-3 gap-2">
+                <button pButton icon="pi pi-check" label="Guardar" (click)="confirmarCambioEstado()"></button>
+                <button pButton icon="pi pi-times" label="Cerrar" (click)="detalleVisible = false"
+                    class="p-button-secondary"></button>
+            </div>
+
+            <h4>Fecha: {{ compraSeleccionada.fecha | date:'dd/MM/yyyy' }}</h4>
+            <h4>Total: ${{ compraSeleccionada.total | number:'1.2-2' }}</h4>
+
+            <div class="p-field mt-3">
+                <label for="estado">Cambiar estado:</label>
+                <p-dropdown [options]="estadosDisponibles" [(ngModel)]="compraSeleccionada.estado"
+                    placeholder="Selecciona un estado">
+                </p-dropdown>
+            </div>
+
+            <!-- Mostrar campo "Guía" solo si el estado es 'Enviado' -->
+            <div class="p-field mt-3" *ngIf="compraSeleccionada.estado === 'Enviado'">
+                <label for="guia">Número de guía:</label>
+                <input 
+                    type="text" 
+                    pInputText 
+                    id="guia" 
+                    [(ngModel)]="compraSeleccionada.guia" 
+                    placeholder="Ingresa número de guía">
+            </div>
+
+            <h5 class="mt-4">Productos:</h5>
+            <ul>
+                <li *ngFor="let item of compraSeleccionada.productos">
+                    {{ item.nombre }} - {{ item.cantidad }}x - ${{ item.precio | number:'1.2-2' }}
+                </li>
+            </ul>
+
+            <h4>Dirección de envío:</h4>
+            <p>
+                {{ compraSeleccionada.direccion.calle }} {{ compraSeleccionada.direccion.numero }},<br>
+                Colonia {{ compraSeleccionada.direccion.colonia }},<br>
+                {{ compraSeleccionada.direccion.ciudad }}, {{ compraSeleccionada.direccion.estado }}
+            </p>
+        </div>
+    </p-dialog>
+
+    <p-confirmDialog></p-confirmDialog>
+</div>

@@ -1,0 +1,57 @@
+<div class="container">
+  <h2 class="title">Historial de Compras</h2>
+
+  <p *ngIf="compras.length === 0" class="alert alert-warning">No tienes compras registradas.</p>
+
+  <p-table [value]="compras" [paginator]="true" [rows]="5" responsiveLayout="scroll">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Fecha</th>
+        <th>Total</th>
+        <th>Estado</th>
+        <th>Detalles</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-compra>
+      <tr>
+        <td>{{ compra.fecha | date:'dd/MM/yyyy' }}</td>
+        <td>$ {{ compra.total | number:'1.2-2' }}</td>
+        <td>
+
+          <p-message [severity]="getStatusSeverity(compra.estado)" text="{{ compra.estado }}"></p-message>
+
+        </td>
+        <td>
+          <button pButton icon="pi pi-eye" (click)="verDetalles(compra)" label="Ver"></button>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+
+  <p-dialog [(visible)]="detalleVisible" [modal]="true" header="Detalles de la Compra">
+    <div *ngIf="compraSeleccionada">
+      <h4>Fecha: {{ compraSeleccionada.fecha }}</h4>
+      <h4>Total: ${{ compraSeleccionada.total | number:'1.2-2' }}</h4>
+      <h4>Estado: <span> <p-message [severity]="getStatusSeverity(compraSeleccionada.estado)"
+            text="{{ compraSeleccionada.estado }}"></p-message>
+        </span></h4>
+
+        <h4>Guía: 
+          <a [href]="compraSeleccionada.guia" target="_blank" rel="noopener noreferrer">
+            {{ compraSeleccionada.guia }}
+          </a>
+        </h4>
+        
+      <h5>Productos:</h5>
+      <ul>
+        <li *ngFor="let item of compraSeleccionada.productos">
+          {{ item.Name }} - {{ item.Quantity }}x - ${{ item.Subtotal | number:'1.2-2' }}
+        </li>
+      </ul>
+
+    </div>
+    <p-footer>
+      <button pButton icon="pi pi-times" label="Cerrar" (click)="detalleVisible = false"></button>
+    </p-footer>
+  </p-dialog>
+</div>

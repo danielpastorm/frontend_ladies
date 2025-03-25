@@ -1,0 +1,18 @@
+<div class="subscription-container">
+    <h2>Gestiona tu Suscripción</h2>
+    
+    <div *ngIf="!isSubscribed" class="subscription-section">
+      <p>Suscríbete para acceder a nuestro servicio premium.</p>
+      <label for="plan">Selecciona un plan:</label>
+      <select id="plan" [(ngModel)]="selectedPlan" class="subscription-select">
+        <option *ngFor="let plan of plans" [value]="plan.id">{{ plan.name }} - {{ plan.price | currency }}</option>
+      </select>
+      <button pButton label="Suscribirse" class="subscribe-button" (click)="subscribe()"></button>
+    </div>
+  
+    <div *ngIf="isSubscribed" class="subscription-section active-subscription">
+      <p>Actualmente estás suscrito al plan <strong>{{ currentPlan.name }}</strong>.</p>
+      <button pButton label="Administrar Suscripción" class="manage-button" (click)="manageSubscription()"></button>
+      <button pButton label="Cancelar Suscripción" class="cancel-button p-button-danger" (click)="cancelSubscription()"></button>
+    </div>
+  </div>

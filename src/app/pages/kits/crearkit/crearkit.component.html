@@ -1,0 +1,103 @@
+<form #kitForm="ngForm" (ngSubmit)="guardarKit()">
+    <div class="grid">
+        <!-- Detalles del Kit -->
+        <div class="col-12 md:col-4">
+            <p-card header="Detalles del Kit">
+                <p-iconfield>
+                    <p-inputicon styleClass="pi pi-circle-on"></p-inputicon>
+                    <!-- Se agrega [(ngModel)] y name para que Angular lo reconozca en el form -->
+                    <input type="text" pInputText placeholder="Nombre" [(ngModel)]="kit.nombre" name="nombre"
+                        required />
+                </p-iconfield>
+
+                <p-iconfield style="margin-top: 10px; margin-bottom: 20px;">
+                    <p-inputicon styleClass="pi pi-circle-on"></p-inputicon>
+                    <input type="text" pInputText placeholder="Descripcion" [(ngModel)]="kit.descripcion"
+                        name="descripcion" required />
+                </p-iconfield>
+
+                <span style="margin-top: 20px;">Disponible?</span>
+                <!-- Enlazamos el toggle a una propiedad del objeto kit -->
+                <p-togglebutton [(ngModel)]="kit.disponible" name="disponible" onIcon="pi pi-check"
+                    offIcon="pi pi-times" class="w-full sm:w-40" aria-label="Confirmation"></p-togglebutton>
+            </p-card>
+        </div>
+
+        <!-- Precio -->
+        <div class="col-12 md:col-8">
+            <p-card header="Precio">
+                <p-inputnumber inputId="minmaxfraction" mode="decimal" [(ngModel)]="kit.precio" name="precio"
+                    [minFractionDigits]="2" [maxFractionDigits]="5" required></p-inputnumber>
+            </p-card>
+        </div>
+
+        <!-- Agregar productos -->
+        <div class="col-12 md:col-2">
+            <p-card header="Agregar productos">
+                <div class="p-field">
+                    <p-select placeholder="Selecciona un producto" [options]="productos" optionLabel="nombre"
+                        [editable]="true" class="w-full md:w-56" [(ngModel)]="selectedProducto" name="selectedProducto">
+                    </p-select>
+
+                </div>
+
+                <div class="p-field" style="margin-top: 10px;">
+                    <p-inputNumber [(ngModel)]="cantidad" [min]="1" placeholder="Cantidad" class="w-full md:w-56"
+                        name="cantidad"></p-inputNumber>
+
+                </div>
+
+                <div class="p-field" style="margin-top: 10px;">
+                    <p-button label="Agregar" icon="pi pi-plus" (onClick)="agregarProducto()" class="w-full"></p-button>
+                </div>
+            </p-card>
+        </div>
+
+        <!-- Productos agregados -->
+        <div class="col-12 md:col-10">
+            <p-card header="Productos agregados">
+                <div class="grid">
+                    <div class="cardp relative m-2" *ngFor="let prod of productosAgregados; let i = index">
+                        <div class="imagep relative w-72 h-48 rounded-md overflow-hidden">
+                            <img [src]="'https://ladies-first.shop/uploads/' + prod.id + '/' + prod.imagenes"
+                                class="w-full h-full object-cover" />
+                            <p-button class="absolute top-2 right-2 rounded-full p-2" severity="danger"
+                                (onClick)="removeProducto(i)">
+                                <i class="pi pi-trash"></i>
+                            </p-button>
+                        </div>
+                        <span class="titlep block mt-2 font-bold">{{ prod.nombre }}</span>
+                        <span class="pricep text-gray-700">
+                            $ {{ prod.precioTotal | number:'1.2-2' }}
+                        </span>
+                    </div>
+                </div>
+            </p-card>
+        </div>
+
+        <!-- Cargar Imagenes -->
+        <div class="col-12 md:col-6">
+            <p-card header="Cargar Imagenes">
+                <div class="card">
+                    <div class="card">
+                        <p-toast></p-toast>
+                        <p-fileupload name="file" [url]="'https://ladies-first.shop/Images/AgregarImagenesKit/-1'"
+                            (onUpload)="onUpload($event)" [auto]="true" [multiple]="false" accept="image/*"
+                            maxFileSize="3000000" mode="advanced">
+                            <ng-template #empty>
+                                <div>Arrastra y suelta archivos para subirlos.</div>
+                            </ng-template>
+                        </p-fileupload>
+                    </div>
+                </div>
+            </p-card>
+        </div>
+
+        <!-- <p-fileupload name="file[]" [url]="'https://localhost:7027/Images/AgregarImagenesKit/-
+
+        <!-- Botón de envío -->
+        <div class="col-12">
+            <p-button type="submit" label="Guardar Kit" [disabled]="!kitForm.valid"></p-button>
+        </div>
+    </div>
+</form>

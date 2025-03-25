@@ -1,0 +1,16 @@
+.checkout-container {
+    display: flex;
+    justify-content: flex-end; /* ✅ Lo manda a la derecha */
+    width: 100%; /* ✅ Ocupa todo el ancho */
+    padding: 10px; /* Opcional */
+}
+
+.checkout-button {
+    display: flex;
+}
+
+@media (max-width: 768px) {
+    .checkout-container {
+        justify-content: center; /* ✅ Centrar en pantallas pequeñas */
+    }
+}
