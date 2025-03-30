@@ -2,8 +2,8 @@ import { Component } from '@angular/core';
 import { AuthService, LoginDTO, LoginResponse, UserProfile, Register, RegisterResponse } from '../../../services/auth/auth.service';
 import { CommonModule } from '@angular/common';
 import { Dialog } from 'primeng/dialog';
-import { ButtonModule } from 'primeng/button';
-
+import { ButtonLabel, ButtonModule } from 'primeng/button';
+import { FechaPeriodo } from '../../../Data/perfil.types';
 import { CalendarIcon } from 'primeng/icons';
 import { InputTextModule } from 'primeng/inputtext';
 import { FormsModule } from '@angular/forms';
@@ -13,8 +13,12 @@ import { PasswordModule } from 'primeng/password';
 import { CalendarModule } from 'primeng/calendar';
 import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
 import { MessageService } from 'primeng/api';
-
-import * as jwt_decode from 'jwt-decode';
+import { BehaviorSubject } from 'rxjs';
+import { CardModule } from 'primeng/card';
+import { SelectModule } from 'primeng/select';
+import { DatePicker } from 'primeng/datepicker';
+import { NuestrosProductosComponent } from '../../productos/nuestros-productos/nuestros-productos.component';
+import { PerfilServiceService } from '../../../services/perfil-service.service';
 // const decoded = jwt_decode.default(token);
 
 export interface JwtPayload {
@@ -30,8 +34,8 @@ export interface JwtPayload {
 
 @Component({
   selector: 'app-miperfil',
-  imports: [CommonModule, Dialog, ButtonModule, InputTextModule, FormsModule, IftaLabelModule, FloatLabel, PasswordModule,
-    CalendarIcon, CalendarModule
+  imports: [CommonModule, Dialog, ButtonModule, InputTextModule, FormsModule, IftaLabelModule, FloatLabel, PasswordModule, CardModule, SelectModule, DatePicker, CalendarIcon
+
   ],
   templateUrl: './miperfil.component.html',
   styleUrl: './miperfil.component.css'
@@ -41,7 +45,87 @@ export interface JwtPayload {
 
 export class MiperfilComponent {
 
+  visible: boolean = false;
+  diasDelMes = Array.from({ length: 31 }, (_, i) => ({
+    label: (i + 1).toString(),
+    value: i + 1
+  }));
 
+
+  regular: boolean | null = null;
+  ultCiclo: Date | null = null;
+  confirmado: boolean | null = null;
+  diaAprox: number | null = null;
+
+  ciclo: FechaPeriodo = {
+    IdUsuario: '',
+    esRegular: false,
+    ultimoCiclo: new Date,
+    Confirmado: false,
+    diaAproximado: 0
+  };
+
+  cicloOptions = [
+    { label: 'Sí', value: true },
+    { label: 'No', value: false }
+  ];
+
+  confirmacionOptions = [
+    { label: 'Sí, es correcto', value: true },
+    { label: 'No, está mal', value: false }
+  ];
+
+  calcularProximoPeriodo(fecha: Date): Date {
+    const nueva = new Date(fecha);
+    nueva.setDate(nueva.getDate() + 28);
+    return nueva;
+  }
+
+
+  guardarCiclo() {
+    this.ciclo.Confirmado = this.confirmado ?? false;
+    this.ciclo.IdUsuario = localStorage.getItem("Id") ?? "";
+    this.ciclo.diaAproximado = this.diaAprox ?? 0;
+    this.ciclo.esRegular = this.regular ?? false;
+    this.ciclo.ultimoCiclo = this.ultCiclo ?? new Date;
+
+
+    // Validaciones básicas
+    if (this.regular === true && (!this.ultCiclo || this.confirmado === null)) {
+      alert('Completa todos los campos para ciclos regulares.');
+      return;
+    }
+
+    if (this.regular === false && !this.diaAprox) {
+      alert('Ingresa el día aproximado en que te baja.');
+      return;
+    }
+
+    this.perfilService.RegistrarPeriodo(this.ciclo).subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: '¡Registro exitoso!',
+          detail: 'Haz registrado correctamente tu información'
+        });
+      },
+      error: (error) => {
+        this.messageService.add({
+          severity: 'warn',
+          summary: '¡Ocurrio un error!',
+          detail: 'Intentalo nuevamente'
+        });
+      }
+    });
+
+
+    this.visible = false;
+  }
+
+
+  showDialog() {
+    this.visible = true;
+  }
   loginModel: LoginDTO = {
     email: '',
     password: ''
@@ -67,14 +151,29 @@ export class MiperfilComponent {
   role: string = "";
 
 
-  constructor(private authService: AuthService, private messageService: MessageService) { }
+
+  constructor(private authService: AuthService, private messageService: MessageService, private perfilService: PerfilServiceService) {
+
+    this.authService.isAuthenticated$.subscribe(isAuth => {
+      this.isAuthenticated = isAuth;
+      if (isAuth) {
+        this.cargarPerfil();
+      } else {
+        // 🔥 Limpiar el perfil al cerrar sesión
+        this.profile = {} as UserProfile;
+        this.errorMessage = 'No estás autenticado';
+        this.autenticated = false;
+        this.loading = false;
+      }
+    })
+
+  }
 
   ngOnInit(): void {
 
 
 
-
-
+    this.cargarPerfil();
 
 
     registerModel: this.registerModel = {
@@ -89,35 +188,6 @@ export class MiperfilComponent {
       ciudad: '',
       estado: ''
     };
-
-
-    // Opcional: Verificar si hay token almacenado
-    const token = localStorage.getItem('token');
-    if (!token) {
-      this.errorMessage = 'No estás autenticado';
-      this.autenticated = false;
-      this.loading = false;
-      return;
-    }
-
-
-
-    // Llamar al endpoint de perfil
-    this.authService.getProfile().subscribe({
-      next: data => {
-        localStorage.setItem("nombre", data.nombre)
-        localStorage.setItem("Id", data.id)
-        this.profile = data;
-        this.loading = false;
-        this.autenticated = true;
-      },
-      error: err => {
-        console.error('Error al cargar el perfil:', err);
-        this.errorMessage = 'Error al cargar el perfil';
-        this.autenticated = false;
-        this.loading = false;
-      }
-    });
 
     // Llamar al endpoint de perfil
     this.authService.getRole().subscribe({
@@ -153,21 +223,30 @@ export class MiperfilComponent {
 
     this.authService.login(this.loginModel).subscribe(
       (response: LoginResponse) => {
-        // Guarda el token y el nombre de usuario
-        localStorage.setItem('token', response.token);
+        this.authService.setToken(response.token); // 💥 ahora notifica a toda la app
         this.isAuthenticated = true;
-        // Limpia el formulario
         this.loginModel = { email: '', password: '' };
 
-        // Simula un retardo para mostrar el estado de "Cerrando sesión"
-        setTimeout(() => {
-          this.isLoggingOut = false;
-          // Puedes recargar la página o redirigir al login
-          window.location.reload();
-          this.isAuthenticated = true;
-          // O usando el router: this.router.navigate(['/login']);
-        }, 1000);
+        this.authService.getProfile().subscribe({
+          next: (profile: UserProfile) => {
+            localStorage.setItem("nombre", profile.nombre);
+            localStorage.setItem("Id", profile.id);
+            this.profile = profile;
 
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Inicio de sesión exitoso!',
+              detail: '¡Bienvenido ' + profile.nombre + '!'
+            });
+
+            this.displayLogin = false;
+            this.isLoggingOut = false;
+          },
+          error: err => {
+            console.error('Error al obtener el perfil después del login', err);
+            this.isLoggingOut = false;
+          }
+        });
       },
       error => {
         console.error('Error al iniciar sesión', error);
@@ -177,10 +256,12 @@ export class MiperfilComponent {
           summary: 'Error al iniciar sesión!',
           detail: 'Intenta nuevamente'
         });
-        // Aquí podrías mostrar un mensaje de error al usuario
       }
     );
+
   }
+
+
 
 
 
@@ -255,6 +336,44 @@ export class MiperfilComponent {
         this.registering = false;
       }
     );
+  }
+
+
+  cargarPerfil() {
+    this.loading = true;
+    const token = localStorage.getItem('token');
+    if (!token) {
+      this.errorMessage = 'No estás autenticado';
+      this.autenticated = false;
+      this.loading = false;
+      return;
+    }
+
+    this.authService.getProfile().subscribe({
+      next: data => {
+        localStorage.setItem("nombre", data.nombre)
+        localStorage.setItem("Id", data.id)
+        this.profile = data;
+        this.errorMessage = ''; // ✅ Limpia error si todo va bien
+        this.autenticated = true;
+        this.loading = false;
+      },
+      error: err => {
+        console.error('Error al cargar el perfil:', err);
+        this.errorMessage = 'Error al cargar el perfil';
+        this.autenticated = false;
+        this.loading = false;
+      }
+    });
+
+    this.perfilService.ObtenerPeriodo(localStorage.getItem("Id") ?? '').subscribe({
+      next: data => {
+        this.regular = data.esRegular;
+        this.ultCiclo = data.ultimoCiclo;
+        this.confirmado = data.Confirmado;
+        this.diaAprox = data.diaAproximado;
+      }
+    })
   }
 
 

@@ -15,14 +15,11 @@ export interface Producto {
   }
   
   export interface Kit {
-    id?: number;  // Opcional, ya que lo asigna el backend
-    nombre: string;
-    descripcion: string;
-    // Usamos 'disponible' en el JSON, que en el backend se mapea a 'Visible'
-    disponible: boolean;
-    // Las imágenes se pueden enviar opcionalmente o gestionarlas aparte
-    imagenes?: string;
-    productosEnKit: ProductoEnKit[];
+    nombre: string,
+    descripcion: string,
+    disponible: boolean,
+    precio:number,
+    categoriasJson: string
   }
 
 
@@ -38,6 +35,12 @@ export interface Producto {
     nombreProducto: string;
     cantidad: number;
     precioUnitario: number;
+  }
+
+
+  export interface Categorias {
+    Id: number,
+    categoria: string;
   }
   
   

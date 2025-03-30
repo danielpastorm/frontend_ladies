@@ -41,31 +41,9 @@ import { CarouselModule } from 'primeng/carousel';
 import { ToggleButtonModule } from 'primeng/togglebutton';
 import { PrimeNG } from 'primeng/config';
 
+import { Dropdown, DropdownModule } from 'primeng/dropdown';
 
-export interface KitDetail {
-  kitId: number;
-  kitNombre: string;
-  kitDescripcion: string;
-  kitPrecio: number;
-  imagenes: string;      // Campo con las imágenes (posiblemente separadas por un delimitador)
 
-  disponible: boolean;
-  productoId: number;
-  nombreProducto: string;
-  cantidad: number;
-  precioUnitario: number;
-}
-
-export interface KitGroup {
-  kitId: number;
-  kitNombre: string;
-  kitDescripcion: string;
-  imagenes: string;      // Campo con las imágenes (posiblemente separadas por un delimitador)
-
-  kitPrecio: number;
-  disponible: boolean;
-  productos: KitDetail[];
-}
 
 
 @Component({
@@ -74,7 +52,7 @@ export interface KitGroup {
   imports: [
     DataView, FileUpload, Badge, BadgeModule, ProgressBar, RippleModule, ToastModule, FormsModule, DialogModule,
     ButtonModule, DrawerModule, InputGroupModule, InputGroupAddonModule, InputTextModule, InputNumberModule, FloatLabelModule, CarouselModule, ToggleButtonModule,
-    Tag,
+    Tag, DropdownModule,
     TableModule,
     RatingModule,
     CommonModule,
@@ -96,8 +74,6 @@ export class NuestrosProductosComponent implements OnInit {
   ];
   sortKey: string = 'precio';
 
-  kitsDetails: KitDetail[] = []; // datos planos que recibes
-  kitsGrouped: KitGroup[] = [];
 
 
 
@@ -111,14 +87,83 @@ export class NuestrosProductosComponent implements OnInit {
 
 
 
-  selectedKit!: KitGroup;
+
   displayEditModal: boolean = false;
+
+
+  ////////////////
+  kits: any[] = [];
+  productosCatalogo: any[] = [];
+  kitSeleccionado: any = null;
+  mostrarModal = false;
+  productosExtras: number[] = [];
+
+  productos: any[] = [];
+
 
   constructor(private http: HttpClient, private productService: ProductService, private messageService: MessageService, private cartService: ProductService) { }
 
   ngOnInit() {
-    this.fetchKits();
+    // Simula cargar kits
+    this.productService.getProducts().subscribe(data => {
+      this.productos = data;
+      console.log('Productos cargados:', this.productos);
+    });
+
+
+    this.productService.getKits().subscribe(data => {
+      this.productosCatalogo = data;
+
+      this.kits = this.productosCatalogo.map(kit => {
+        const categorias = kit.categoriasJson ? JSON.parse(kit.categoriasJson).categorias : [];
+        kit.imagenes = "https://ladies-first.shop/uploads/20/Captura%20de%20pantalla%202024-01-11%20145645.png,https://ladies-first.shop/uploads/20/Captura%20de%20pantalla%202024-01-11%20145645.png"
+        return {
+          ...kit,
+          imagenesArray: kit.imagenes?.split(',') || [],
+          categorias
+        };
+      });
+
+      console.log('Kits procesados:', this.kits);
+    });
+
+
   }
+
+
+  seleccionarKit(kit: any) {
+    this.kitSeleccionado = JSON.parse(JSON.stringify(kit)); // copia profunda
+    this.productosExtras = [];
+    this.mostrarModal = true;
+  }
+
+  getNombreProducto(id: number): string {
+    return this.productosCatalogo.find(p => p.id === id)?.nombre || `ID ${id}`;
+  }
+
+  getImagenProducto(id: number): string {
+    return `/uploads/productos/${id}.jpg`;
+  }
+
+  agregarExtra(id: number) {
+    if (!this.productosExtras.includes(id)) {
+      this.productosExtras.push(id);
+    }
+  }
+
+  quitarExtra(id: number) {
+    this.productosExtras = this.productosExtras.filter(p => p !== id);
+  }
+
+  confirmarSeleccion() {
+    console.log('Kit personalizado:', this.kitSeleccionado);
+    console.log('Extras:', this.productosExtras);
+    this.mostrarModal = false;
+  }
+
+
+
+
   getFirstImage(images: string): string {
     if (!images) return ''; // Verifica que no sea undefined o vacío
 
@@ -126,66 +171,7 @@ export class NuestrosProductosComponent implements OnInit {
     return decodeURIComponent(firstImage); // Decodifica caracteres especiales como %20
   }
 
-  fetchKits() {
-    this.productService.getKits().subscribe(
-      (data: any[]) => {
-        this.kitsDetails = data;
-        this.agruparKits();
 
-        console.log('Kits obtenidos:', this.kitsDetails);
-      },
-      error => {
-        console.error('Error al obtener kits:', error);
-      }
-    );
-  }
-
-  agruparKits() {
-    // Utiliza reduce para agrupar por kitId
-    const grouped = this.kitsDetails.reduce((acc: { [key: number]: KitDetail[] }, curr: KitDetail) => {
-      if (!acc[curr.kitId]) {
-        acc[curr.kitId] = [];
-      }
-      acc[curr.kitId].push(curr);
-      return acc;
-    }, {});
-
-    // Transforma el objeto en un array de KitGroup, extrayendo los datos del kit del primer elemento de cada grupo
-    this.kitsGrouped = Object.keys(grouped).map(key => {
-      const items = grouped[+key]; // items es un array de KitDetail para este kitId
-      return {
-        kitId: +key,
-        kitNombre: items[0].kitNombre,
-        kitDescripcion: items[0].kitDescripcion,
-        kitPrecio: items[0].kitPrecio,
-        disponible: items[0].disponible,
-        imagenes: items[0].imagenes, // se extrae el campo de imágenes
-        productos: items
-      } as KitGroup;
-    });
-  }
-
-
-  onSortChange(event: any) {
-    const value = event.value;
-    if (value.indexOf('!') === 0) {
-      this.sortOrder = -1;
-      this.sortField = value.substring(1);
-    } else {
-      this.sortOrder = 1;
-      this.sortField = value;
-    }
-  }
-
-  getSeverity(status: string) {
-    switch (status) {
-      case 'true':
-        return 'success';
-      case 'false':
-        return 'warn';
-      default: return
-    }
-  }
 
   getKitImages(imagenes: string): string[] {
     if (!imagenes) {
@@ -199,12 +185,6 @@ export class NuestrosProductosComponent implements OnInit {
     return imagenes.split(';').filter(img => img.trim().length > 0);
   }
 
-  selectKit(kit: KitGroup) {
-    // Clona el kit si es necesario (para no modificar la lista original)
-    this.selectedKit = { ...kit };
-    // Abre el modal de edición
-    this.displayEditModal = true;
-  }
 
   onUpload(event: any): void {
     // Agregar los archivos a tu array, si lo requieres
@@ -223,62 +203,6 @@ export class NuestrosProductosComponent implements OnInit {
     });
   }
 
-  updateProduct() {
-    this.loading = true;
-    this.productService.updateProduct(this.selectedProduct).subscribe({
-      next: (response: string) => {
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Producto actualizado',
-          detail: response  // Por ejemplo: "Producto editado correctamente"
-        });
-        // Actualiza la lista local de productos o redirige según sea necesario
-        this.visible = false;
-        this.loading = false;
-      },
-      error: (error) => {
-        console.error('Error al actualizar el producto:', error);
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'No se pudo actualizar el producto'
-        });
-        this.loading = false;
-      }
-    });
-  }
-
-  deleteImage(index: number) {
-    this.deletingImageIndex = index;
-    if (!this.selectedProduct || !this.selectedProduct.imagenesArray) {
-      // Manejar el caso de que no exista el producto o el array de imágenes
-      console.error('No hay producto seleccionado o imágenes disponibles.');
-      return;
-    }
-    // Obtén la imagen a eliminar
-    const imageToDelete = this.selectedProduct.imagenesArray[index];
-    // Llama al endpoint para eliminar la imagen
-    this.productService.deleteImage(this.selectedProduct.id, imageToDelete, false).subscribe({
-      next: (res) => {
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Imagen eliminada',
-          detail: 'La imagen ha sido eliminada correctamente.'
-        });
-        // Elimina la imagen del array local
-        this.selectedProduct!.imagenesArray!.splice(index, 1);
-      },
-      error: (err) => {
-        console.error('Error al eliminar imagen:', err);
-        this.deletingImageIndex = -1;
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'No se pudo eliminar la imagen'
-        });
-      }
-    });
-  }
 
 
   addKitToCart(kit: any) {
@@ -295,7 +219,7 @@ export class NuestrosProductosComponent implements OnInit {
       this.messageService.add({
         severity: 'success',
         summary: 'Kit agregado correctamente',
-        detail: 'se agrego el kit a tu carrito' 
+        detail: 'se agrego el kit a tu carrito'
       });
     }, error => {
       this.messageService.add({
@@ -305,6 +229,22 @@ export class NuestrosProductosComponent implements OnInit {
       });
     });
   }
+
+
+  getOpcionesProductos(categoria: any): any[] {
+    console.log("categora", categoria)
+    return categoria.productos.map((p: any) => ({
+      label: this.getNombreProductos(p.id),
+      value: p.id
+    }));
+  }
+
+  getNombreProductos(id: number): string {
+    const p = this.productos.find(prod => prod.id === id);
+    return p?.nombre || `Producto ID: ${id}`;
+  }
+  
+
 
 
 }

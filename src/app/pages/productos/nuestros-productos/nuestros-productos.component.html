@@ -1,62 +1,81 @@
-<div class="card">
-    <p-toast></p-toast>
-    <div class="product-grid">
-        <div *ngFor="let kitGroup of kitsGrouped" class="product-card">
-            <!-- Si en el futuro quieres mostrar una imagen del kit, puedes usar la sección product-image -->
-            <!-- Carrusel de imágenes -->
+<div class="grid" *ngIf="kits.length > 0">
+    <div class="col-12 md:col-3" *ngFor="let kit of kits">
+
+        <p-card [header]="kit.nombre" [subheader]="kit.descripcion" class="text-center">
+
+            <!-- Carrusel de imágenes (opcional) -->
+            <p-carousel *ngIf="kit.imagenesArray.length > 0" [value]="kit.imagenesArray" [numVisible]="1"
+                [circular]="true" [autoplayInterval]="4000">
+                <ng-template let-img pTemplate="item">
+                    <img [src]="'https://ladies-first.shop/uploads/2/' + 'Captura de pantalla 2024-01-12 215138.png'"
+                        alt="imagen" class="w-48 h-48 object-contain border-round mx-auto" />
+                </ng-template>
+            </p-carousel>
 
 
-            <div *ngIf="kitGroup.imagenes && kitGroup.imagenes.trim().length > 0" class="image-container">
-                <p-carousel [value]="getKitImages(kitGroup.imagenes)" [numVisible]="1" [circular]="true"
-                    [autoplayInterval]="3000">
-                    <ng-template pTemplate="item" let-image>
-                        <div class="image-item">
-                            <img [src]="'https://ladies-first.shop/uploads/kit_' + kitGroup.kitId + '/' + image"
-                                alt="Imagen del kit">
-                        </div>
-                    </ng-template>
-                </p-carousel>
-            </div>
-
-
-            <div class="product-info">
-                <!-- Datos del kit -->
-                <h3>{{ kitGroup.kitNombre }}</h3>
-                <p>{{ kitGroup.kitDescripcion }}</p>
-                <p>
-                    <strong>Precio Total:</strong>
-                    {{ kitGroup.kitPrecio | currency }}
-                </p>
-                <p>
-                    <strong>Disponible:</strong>
-                    {{ kitGroup.disponible ? 'Sí' : 'No' }}
-                </p>
-                <hr>
-                <!-- Lista de productos -->
-                <h4>Productos</h4>
+            <!-- Categorías -->
+            <div *ngFor="let categoria of kit.categorias" class="mt-3">
+                <h5>{{ categoria.nombre }}</h5>
                 <ul>
-                    <li *ngFor="let prod of kitGroup.productos">
-                        <strong>{{ prod.nombreProducto }}</strong> &ndash;
-                        Cantidad: {{ prod.cantidad }} &ndash;
-                        Precio Unitario: {{ prod.precioUnitario | currency }}
+                    <li *ngFor="let producto of categoria.productos">
+                        {{ getNombreProductos(producto.id) }} (x{{ producto.cantidad }})
                     </li>
                 </ul>
-
-                <!-- Botón para agregar el kit al carrito -->
-                <button class="btn-add-to-cart" title="Agregar al carrito" (click)="addKitToCart(kitGroup)">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-                        <path
-                            d="M397.78 316h-205.13a15 15 0 0 1-14.65-11.67l-34.54-150.48a15 15 0 0 1 14.62-18.36h274.27a15 15 0 0 1 14.65 18.36l-34.6 150.48a15 15 0 0 1-14.62 11.67zm-193.19-30h181.25l27.67-120.48h-236.6z" />
-                        <path
-                            d="M222 450a57.48 57.48 0 1 1 57.48-57.48 57.54 57.54 0 0 1-57.48 57.48zm0-84.95a27.48 27.48 0 1 0 27.48 27.47 27.5 27.5 0 0 0-27.48-27.47z" />
-                        <path
-                            d="M368.42 450a57.48 57.48 0 1 1 57.48-57.48 57.54 57.54 0 0 1-57.48 57.48zm0-84.95a27.48 27.48 0 1 0 27.48 27.47 27.5 27.5 0 0 0-27.48-27.47z" />
-                        <path
-                            d="M158.08 165.49a15 15 0 0 1-14.23-10.26l-25.71-77.23h-47.44a15 15 0 1 1 0-30h58.3a15 15 0 0 1 14.23 10.26l29.13 87.49a15 15 0 0 1-14.23 19.74z" />
-                    </svg>
-                </button>
-
             </div>
-        </div>
+
+            <button pButton label="Seleccionar" class="mt-3" (click)="seleccionarKit(kit)"></button>
+        </p-card>
     </div>
 </div>
+
+
+<!-- MODAL -->
+<p-dialog header="Personaliza tu kit" [(visible)]="mostrarModal" [modal]="true" [style]="{ width: '35vw' }"
+    class="text-center">
+    <ng-container *ngIf="kitSeleccionado">
+        <div *ngFor="let categoria of kitSeleccionado.categorias" class="mb-4">
+            <h5>{{ categoria.nombre }}</h5>
+
+            <!-- <p-dropdown [options]="getOpcionesProductos(categoria)" [(ngModel)]="categoria.idProductoSeleccionado"
+                placeholder="Selecciona un producto">
+            </p-dropdown> -->
+
+            <div class="flex gap-3 flex-wrap">
+                <div *ngFor="let producto of categoria.productos"
+                    (click)="categoria.idProductoSeleccionado = producto.id"
+                    class="flex flex-column align-items-center cursor-pointer" [ngClass]="{
+                    'border-2 border-green-500 p-2 rounded-full': categoria.idProductoSeleccionado === producto.id,
+                    'opacity-100': categoria.idProductoSeleccionado === producto.id,
+                    'opacity-60': categoria.idProductoSeleccionado !== producto.id
+                  }">
+
+                    <img
+  [src]="'https://ladies-first.shop/uploads/2/Captura%20de%20pantalla%202024-01-12%20215138.png'"
+  alt="{{ getNombreProducto(producto.id) }}"
+  style="width: 60px; height: 60px; object-fit: cover; border-radius: 50%; border: 2px solid pink; background: white;" />
+
+                    <small class="mt-2">{{ getNombreProducto(producto.id) }}</small>
+                </div>
+            </div>
+
+        </div>
+
+
+
+        <h5>Productos extras</h5>
+        <div class="flex flex-wrap gap-2">
+            <div *ngFor="let prod of productosCatalogo" class="p-2 border-round border-1 surface-border"
+                style="cursor: pointer" (click)="agregarExtra(prod.id)">
+                <img [src]="getImagenProducto(prod.id)" alt="extra" width="50" class="mr-2 rounded-full" />
+                {{ prod.nombre }}
+
+                <button *ngIf="productosExtras.includes(prod.id)" icon="pi pi-times"
+                    class="p-button-sm p-button-danger ml-2" (click)="quitarExtra(prod.id); $event.stopPropagation()">
+                    Quitar
+                </button>
+            </div>
+        </div>
+
+        <button pButton label="Confirmar selección" class="mt-4" (click)="confirmarSeleccion()"></button>
+    </ng-container>
+</p-dialog>

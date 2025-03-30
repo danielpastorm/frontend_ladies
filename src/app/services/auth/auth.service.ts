@@ -52,11 +52,20 @@ export interface RegisterResponse {
 }
 
 
+
+
+
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
 
+
+  private roleSubject = new BehaviorSubject<string | null>(localStorage.getItem('role'));
+  public role$ = this.roleSubject.asObservable();
+
+  private authSubject = new BehaviorSubject<boolean>(!!localStorage.getItem('token'));
+  public isAuthenticated$ = this.authSubject.asObservable();
 
   public public_role: string = "";
 
@@ -65,7 +74,7 @@ export class AuthService {
   // https://localhost:7027
   private local = 'https://localhost:7027/Auth'
 
-  isprod: boolean = true;
+  isprod: boolean = false;
   private apiUrl = this.isprod ? 'https://Ladies-First.shop/Auth' : this.local;
 
   constructor(private http: HttpClient) {
@@ -87,6 +96,7 @@ export class AuthService {
     return this.getRole().pipe(
       tap((role: string) => {
         localStorage.setItem('role', role);
+        this.roleSubject.next(role); // <--- aquí notificas el nuevo valor
         console.log('Rol guardado en localStorage:', role);
       }),
       switchMap(() => this.http.get<UserProfile>(`${this.apiUrl}/me`, { headers }))
@@ -130,6 +140,23 @@ export class AuthService {
     });
   }
 
+
+  setToken(token: string) {
+    localStorage.setItem('token', token);
+    this.authSubject.next(true); 
+  }
+  
+  logout() {
+    localStorage.clear();
+    this.authSubject.next(false); 
+    this.roleSubject.next(null);
+
+  }
+
+  private hasToken(): boolean {
+    return !!localStorage.getItem('token');
+  }
+  
 
 
   

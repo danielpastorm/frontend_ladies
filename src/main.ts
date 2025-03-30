@@ -1,23 +1,22 @@
 import { bootstrapApplication } from '@angular/platform-browser';
-import { appConfig } from './app/app.config';
 import { AppComponent } from './app/app.component';
-import { providePrimeNG } from 'primeng/config';
-import { Router, Routes } from '@angular/router';
+import { appConfig } from './app/app.config';
 import { provideRouter } from '@angular/router';
 import { routes } from './app/app.routes';
-import { HttpClient } from '@angular/common/http';
 import { provideHttpClient } from '@angular/common/http';
-import { ThemeProvider } from 'primeng/config';
-import lara from '@primeng/themes/nora'
+import { registerLocaleData } from '@angular/common';
+import localeEs from '@angular/common/locales/es';
+import { LOCALE_ID } from '@angular/core';
 
+registerLocaleData(localeEs);
 
 bootstrapApplication(AppComponent, {
-  ...appConfig, // Expande las configuraciones de appConfig
+  ...appConfig,
   providers: [
-    ...appConfig.providers, // Asegura que los providers deh appConfig sean incluidos
-    provideRouter(routes), // Agrega la configuración de rutas
+    ...appConfig.providers,
+    provideRouter(routes),
     provideHttpClient(),
-    
-  ],
-}).catch((err) => console.error(err));
 
+    { provide: LOCALE_ID, useValue: 'es' }
+  ]
+}).catch((err) => console.error(err));

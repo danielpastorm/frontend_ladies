@@ -126,6 +126,8 @@ export class CarritoComponent {
       next: res => console.log('Pedido guardado', res),
       error: err => console.error('Error al guardar pedido', err)
     });
+
+    this.cartService.clearCart(localStorage.getItem("Id") ?? '').subscribe();
   }
 
 

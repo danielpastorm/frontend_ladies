@@ -2,10 +2,9 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Producto } from '../Data/producto.types';
-import { Kit } from '../Data/kit.types';
+import { Categorias, Kit } from '../Data/kit.types';
 import { KitDetail } from '../Data/kit.types';
-import { KitDTO } from '../pages/kits/crearkit/crearkit.component';
-import { KitGroup } from '../pages/productos/nuestros-productos/nuestros-productos.component';
+
 
 @Injectable({
   providedIn: 'root'
@@ -15,11 +14,11 @@ import { KitGroup } from '../pages/productos/nuestros-productos/nuestros-product
 
 export class ProductService {
 
-  private url_kits = '/Kits';
   
   
-  private Isprod = true;
+  private Isprod = false;
   
+  private url_kits = this.Isprod ? '/Kits' : 'https://localhost:7027/Kits';
   private apiUrl = this.Isprod? '/CheckOut' : 'https://localhost:7027/CheckOut';
   private home = this.Isprod ? '/' : 'https://localhost:7027/';
 
@@ -32,6 +31,10 @@ export class ProductService {
         console.error('Error al obtener productos:', error);
         return [];
       });
+  }
+
+  getProducts(): Observable<Producto[]> {
+    return this.http.get<Producto[]>(`${this.home}productos/listar`);   
   }
   
 
@@ -49,10 +52,10 @@ export class ProductService {
   }
 
   
-  updateKit(product: Kit): Observable<string> {
-    return this.http.put<string>(
-      `${this.url_kits}/EditKit/${product.id}`, product);
-  } 
+  // updateKit(product: Kit): Observable<string> {
+  //   return this.http.put<string>(
+  //     `${this.url_kits}/EditKit/${product.id}`, product);
+  // } 
   
   
   
@@ -130,6 +133,16 @@ export class ProductService {
   obtenerTodosLosPedidos() {
     return this.http.get<any[]>(`${this.apiUrl}/todos`);
   }
+
+
+  getCategorias(){
+    return this.http.get<any[]>(`${this.url_kits}/getcategorias`);
+  }
+
+  newCategoria(categoria: Categorias) {
+    return this.http.post(`${this.url_kits}/agregarcategoria`, categoria);
+  }
+
   
   
   

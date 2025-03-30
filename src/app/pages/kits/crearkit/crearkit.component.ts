@@ -20,10 +20,15 @@ import { ProgressBar } from 'primeng/progressbar';
 import { ToastModule } from 'primeng/toast';
 import { FileUploadEvent } from 'primeng/fileupload';
 import { ProductService } from '../../../services/product.service';
-
 import { Select } from 'primeng/select';
+import { FloatLabel } from 'primeng/floatlabel';
+import { DialogModule } from 'primeng/dialog';
+
+import { Dialog } from 'primeng/dialog';
+
 
 import { Router } from '@angular/router';
+import { Categorias } from '../../../Data/kit.types';
 
 export class ProductoEnKitDTO {
   constructor(
@@ -67,11 +72,18 @@ export interface producto {
   imagenes: string;
 }
 
+interface CategoriaEnKit {
+  nombre: string;
+  idProductos: number[];
+  idProductoSeleccionado: number | null;
+}
+
+
 
 @Component({
   selector: 'app-crearkit',
-  imports: [ReactiveFormsModule, Button, FileUpload, DropdownModule, Card,
-    InputIcon,
+  imports: [ReactiveFormsModule, Button, FileUpload, DropdownModule, Card, FloatLabel, Dialog,
+    InputIcon, DialogModule,
     IconField,
     InputTextModule,
     FormsModule,
@@ -102,7 +114,6 @@ export class CrearkitComponent {
   //demas 
 
   selectedProducto: any;
-  cantidad: number = 1;
   images: string[] = [];
   productForm!: FormGroup;
   selectedImages: string[] = [];
@@ -117,12 +128,24 @@ export class CrearkitComponent {
     { label: 'Categoría 2', value: 'cat2' },
     { label: 'Categoría 3', value: 'cat3' },
   ];
+
+  categorias: CategoriaEnKit[] = [];
+  nuevaCategoriaNombre: string = '';
+
+  productosDisponibles: any[] = []; // lista de todos los productos (puedes cargarla desde tu API)
+
+
+  categoriaSeleccionada: any = null;
+  productoParaCategoria: any = null;
+
+
+
   constructor(private fb: FormBuilder, private messageService: MessageService, private productService: ProductService, private router: Router
     , private config: PrimeNG
   ) { }
 
   ngOnInit(): void {
-    this.home = this.isProd ? 'https://ladies-first.shop/' :'/'; 
+    this.home = this.isProd ? 'https://ladies-first.shop/' : '/';
     // Definimos el formulario reactivo
     this.productForm = this.fb.group({
       name: ['', Validators.required],
@@ -130,49 +153,28 @@ export class CrearkitComponent {
       price: [null, Validators.required],
       category: [null, Validators.required],
     });
-   
+
+    this.obtenerCategorias();
+
     this.fetchProducts();
 
   }
 
-  removeProducto(index: number) {
-    this.productosAgregados.splice(index, 1);
+  visible: boolean = false;
+
+  showDialog() {
+    this.visible = true;
   }
-
-  agregarProducto() {
-    if (this.selectedProducto && this.cantidad > 0) {
-      // Crea el DTO con el id del producto y la cantidad
-      const productoDTO = new ProductoEnKitDTO(this.selectedProducto.id, this.cantidad);
-
-      // Crea un objeto que combine la información completa del producto y el DTO
-      const productoAgregado = {
-        ...this.selectedProducto,  // Detalles completos del producto
-        cantidad: this.cantidad,     // Cantidad agregada
-        dto: productoDTO             // El DTO con productoId y cantidad
-      };
-
-      // Agrega este objeto al array que usas para visualización
-      this.productosAgregados.push(productoAgregado);
-
-      console.log('Producto agregado:', productoAgregado);
-
-      // Reinicia la selección y la cantidad
-      this.selectedProducto = null;
-      this.cantidad = 1;
-    } else {
-      console.warn('Seleccione un producto y especifique una cantidad válida');
-    }
-  }
-
 
 
   fetchProducts() {
     this.productService.getProductsMini()
       .then((data: producto[]) => {
         this.productos = data;
+        this.updateProductosDropdown(); // <-- FALTA ESTO
       })
       .catch(error => {
-        console.error('Error al obtener kits', error);
+        console.error('Error al obtener productos', error);
       });
   }
 
@@ -255,67 +257,220 @@ export class CrearkitComponent {
 
 
 
-  // Objeto kit que se enviará al backend
-  kit: Kit = {
+  kit = {
     nombre: '',
     descripcion: '',
-    precio: 0,
+    imagenes: '',
     disponible: false,
-    productosEnKit: []  // Ahora es ProductoEnKit[]
+    precio: 0,
+    categoriasJson: '' // Aquí meterás JSON.stringify(this.kitJson)
   };
 
 
 
 
-  guardarKit() {
-    // Mapea el array de productos agregados a un array con solo productoId y cantidad
-    this.kit.productosEnKit = this.productosAgregados.map(p => ({
-      productoId: p.id,
-      cantidad: p.cantidad
-    }));
 
-    console.log('Kit a enviar:', this.kit);
 
-    this.productService.createKit(this.kit).subscribe(
-      response => {
-        console.log('Kit creado exitosamente:', response);
-        // Mostrar mensaje de éxito
+  agregarCategoria() {
+    if (!this.nuevaCategoriaNombre.trim()) return;
+
+    const nuevaCategoria: CategoriaEnKit = {
+      nombre: this.nuevaCategoriaNombre.trim(),
+      idProductos: [],
+      idProductoSeleccionado: null
+    };
+
+    this.categorias.push(nuevaCategoria);
+    this.nuevaCategoriaNombre = '';
+    this.updateCategoriasDropdown(); // 👈 importante
+  }
+
+
+  agregarProductoACategoria(nombreCategoria: string, productoId: number) {
+    const categoria = this.categorias.find(cat => cat.nombre === nombreCategoria);
+    if (!categoria) return;
+
+    if (!categoria.idProductos.includes(productoId)) {
+      categoria.idProductos.push(productoId);
+    }
+  }
+
+
+  seleccionarProducto(categoria: CategoriaEnKit, productoId: number) {
+    categoria.idProductoSeleccionado = productoId;
+  }
+
+  eliminarCategoria(index: number) {
+    this.categorias.splice(index, 1);
+  }
+
+
+
+
+  categoria: string = "";
+
+  guardarCategoria() {
+    const cat: Categorias = {
+      Id: 0,
+      categoria: this.categoria
+    }
+    console.log(cat)
+    this.productService.newCategoria(cat).subscribe({
+      next: data => {
         this.messageService.add({
           severity: 'success',
           summary: 'Éxito',
-          detail: 'Kit creado correctamente'
+          detail: 'Categoria creada correctamente'
+        });
+      },
+      error: data => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Error',
+          detail: 'Intenta nuevamente'
+        });
+      }
+    })
+  }
+
+
+  categorias_list: Categorias[] = [];
+  categoriasDropdown: { label: string; value: string }[] = [];
+  categoriaSeleccionadaId: number | null = null;
+
+
+  obtenerCategorias() {
+    this.productService.getCategorias().subscribe({
+      next: data => {
+        this.categoriasDropdown = data.map(cat => ({
+          label: cat.categoria,
+          value: cat.Id
+        }));
+      },
+      error: err => {
+        console.log("Error al obetner las categorias");
+      }
+    })
+  }
+
+  productosDropdown: { label: string; value: number }[] = [];
+
+
+
+  updateCategoriasDropdown() {
+    this.categoriasDropdown = this.categorias.map(cat => ({
+      label: cat.nombre,
+      value: cat.nombre
+    }));
+  }
+
+
+  updateProductosDropdown() {
+    this.productosDropdown = this.productos.map(prod => ({
+      label: prod.nombre,
+      value: prod.id!  // 
+    }));
+
+  }
+
+
+
+
+
+
+  ///si se usara
+  kitJson: any = {
+    categorias: [],
+    extras: [],
+    precioFinal: null
+  };
+
+  cantidad: any = 0;
+  agregarProductoACategoriaSeleccionada() {
+    if (!this.categoriaSeleccionada || !this.productoParaCategoria) {
+      return;
+    }
+
+    const nombreCategoria = this.categoriaSeleccionada.label;
+    const idProducto = this.productoParaCategoria.value;
+    const nombreProducto = this.productoParaCategoria.label
+
+    const cantidad = this.cantidad;
+
+    const categoriaExistente = this.kitJson.categorias.find((cat: { nombre: any; }) => cat.nombre === nombreCategoria);
+
+    if (categoriaExistente) {
+      const productoExistente = categoriaExistente.productos.find((p: { id: any; }) => p.id === idProducto);
+
+      if (productoExistente) {
+        productoExistente.cantidad += 1; // aumenta cantidad
+      } else {
+        categoriaExistente.productos.push({ id: idProducto, cantidad });
+      }
+    } else {
+      this.kitJson.categorias.push({
+        nombre: nombreCategoria,
+        productos: [{ id: idProducto, cantidad }],
+        idProductoSeleccionado: null
+      });
+    }
+
+    this.categoriaSeleccionada = null;
+    this.productoParaCategoria = null;
+    this.cantidad = null;
+
+    console.log('Kit actualizado:', this.kitJson);
+  }
+
+
+
+  eliminarProductoDeCategoria(nombreCategoria: string, idProducto: number) {
+    const categoria = this.kitJson.categorias.find((c: { nombre: string; }) => c.nombre === nombreCategoria);
+
+    if (!categoria) return;
+
+    categoria.productos = categoria.productos.filter((p: { id: number; }) => p.id !== idProducto);
+
+    // Si ya no hay productos, también podrías eliminar toda la categoría (opcional)
+    if (categoria.productos.length === 0) {
+      this.kitJson.categorias = this.kitJson.categorias.filter((c: { nombre: string; }) => c.nombre !== nombreCategoria);
+    }
+
+    console.log('Producto eliminado. Kit actualizado:', this.kitJson);
+  }
+
+  getNombreProducto(id: number): string {
+    const p = this.productos.find(p => p.id === id);
+    return p?.nombre || 'Producto no encontrado';
+  }
+  getImagenProducto(id: number): string {
+    id = 20;
+    return `https://ladies-first.shop/uploads/${id}/Captura de pantalla 2024-01-11 145645.png`;
+  }
+
+
+  guardarKit() {
+
+
+    this.kit.categoriasJson = JSON.stringify(this.kitJson);
+    console.log(this.kit)
+    this.productService.createKit(this.kit).subscribe({
+      next: data => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Éxito',
+          detail: 'Se creo correctamente'
         });
 
-        this.limpiarFormulario();
-
-
       },
-      error => {
-        console.error('Error al crear el kit:', error);
+      error: err => {
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Error',
+          detail: 'Intenta nuevamente'
+        });
       }
-    );
-  }
-
-
-  limpiarFormulario() {
-    // Reinicia el formulario reactivo
-    this.productForm.reset();
-
-    // Limpia la lista de productos agregados
-    this.productosAgregados = [];
-
-    // Reinicia cualquier otra variable si es necesario
-    this.kit = {
-      nombre: '',
-      descripcion: '',
-      precio: 0,
-      
-      disponible: false,
-      productosEnKit: []
-    };
-
-    // Opcional: limpiar imágenes, etc.
-    this.selectedImages = [];
+    })
   }
 
 
@@ -325,7 +480,18 @@ export class CrearkitComponent {
 
 
 
-  
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

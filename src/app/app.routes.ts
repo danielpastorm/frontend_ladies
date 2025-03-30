@@ -9,7 +9,6 @@ import { InicioComponent } from './pages/Inicio/inicio/inicio.component';
 import { CrearComponent } from './pages/productos/crear/crear.component';
 import { CrearkitComponent } from './pages/kits/crearkit/crearkit.component';
 import { PedidosComponent } from './pages/pedidos/pedidos/pedidos.component';
-import { RegistrarperiodoComponent } from './pages/registrarperiodo/registrarperiodo.component';
 import { ComprasComponent } from './pages/perfil/compras/compras.component';
 import { SuscripcionComponent } from './pages/perfil/suscripcion/suscripcion.component';
 import { MmComponent } from './pages/ee/mm/mm.component';
@@ -78,12 +77,6 @@ export const routes: Routes = [
         path: 'resumen',
         component: PedidosComponent,
         title: "Resumen de pedidos"
-
-    },
-    {
-        path: 'registrarperiodo',
-        component: RegistrarperiodoComponent,
-        title: "Registrar periodo"
 
     },
     {

@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { ProductService } from '../../../services/product.service';
 import { Producto } from '../../../Data/producto.types';
 import { AuthService } from '../../../services/auth/auth.service';
+import { MessageService } from 'primeng/api';
 @Component({
   selector: 'app-comprar-productos',
   imports: [CardModule, ButtonModule, CommonModule],
@@ -14,7 +15,7 @@ import { AuthService } from '../../../services/auth/auth.service';
 export class ComprarProductosComponent {
   products: any[] = []
 
-  constructor(private productoService: ProductService, private auth: AuthService, private cartService: ProductService) {}
+  constructor(private productoService: ProductService, private auth: AuthService, private cartService: ProductService, private messageService: MessageService) {}
 
   ngOnInit() {
     this.fetchProducts();
@@ -60,9 +61,16 @@ export class ComprarProductosComponent {
     };
 
     this.cartService.addToCart(cartItem).subscribe(() => {
-      console.log("Producto agregado al carrito:", product);
+      this.messageService.add({
+        severity: 'success',
+        summary: '¡Producto agregado correctamente!'
+      });
     }, error => {
-      console.error("Error al agregar al carrito", error);
+      this.messageService.add({
+        severity: 'warn',
+        summary: '¡Algo salio mal!',
+        detail: 'Intenta nuevamente'
+      });
     });
   }
   

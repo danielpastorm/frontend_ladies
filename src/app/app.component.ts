@@ -65,7 +65,9 @@ export class AppComponent {
     title = 'Ladies First';
     role: string = "";
 
+    token_test: string = "";
 
+    isAdmin: boolean = false;
 
     loginModel: LoginDTO = {
         email: '',
@@ -79,6 +81,7 @@ export class AppComponent {
 
         // Opcional: Al iniciar, verifica si ya hay un token en localStorage.
         const token = localStorage.getItem('token');
+        this.token_test = localStorage.getItem('token') ?? '';
         if (token) {
             this.isAuthenticated = true;
             // Podrías decodificar el token o almacenar el nombre de usuario previamente.
@@ -111,6 +114,7 @@ export class AppComponent {
 
                 // Guarda el token y el nombre de usuario
                 localStorage.setItem('token', response.token);
+
                 this.isAuthenticated = true;
                 // Limpia el formulario
                 this.loginModel = { email: '', password: '' };
@@ -119,7 +123,6 @@ export class AppComponent {
                 setTimeout(() => {
                     this.isLoggingOut = false;
                     // Puedes recargar la página o redirigir al login
-                    window.location.reload();
                     this.isAuthenticated = true;
                     // O usando el router: this.router.navigate(['/login']);
                 }, 1000);
@@ -149,32 +152,8 @@ export class AppComponent {
         });
 
         this.isLoggingOut = true;
-
-        // Realiza las acciones de logout: elimina token y otros datos
-        // localStorage.removeItem('token');
-        // localStorage.removeItem('userName');
-        // localStorage.removeItem("role");
-        // localStorage.removeItem("Id");
-        // localStorage.removeItem("nombre");
-
-        const datos = ['token', 'userName', 'role', 'Id', 'nombre'];
-        datos.forEach(element => {
-            localStorage.removeItem(element);
-        });
-
-        this.userName = '';
-
-        // Simula un retardo para mostrar el estado de "Cerrando sesión"
-        setTimeout(() => {
-
-
-
-            this.isLoggingOut = false;
-            // Puedes recargar la página o redirigir al login
-            window.location.reload();
-            this.isAuthenticated = false;
-            // O usando el router: this.router.navigate(['/login']);
-        }, 1000);
+        this.authService.logout();
+        this.isLoggingOut = false;
     }
 
     showSuccess() {
@@ -257,19 +236,6 @@ export class AppComponent {
 
     ngOnInit() {
 
-        this.authService.getRole().subscribe({
-            next: (role: string) => {
-                localStorage.setItem('role', role);
-                console.log('Rol guardado en localStorage:', role);
-            },
-            error: err => {
-                console.error('Error al obtener el rol:', err);
-            }
-        });
-        this.role = localStorage.getItem("role") ?? "";
-
-
-
         registerModel: this.registerModel = {
             email: '',
             nombre: '',
@@ -282,126 +248,74 @@ export class AppComponent {
             ciudad: '',
             estado: ''
         };
+
+        this.authService.isAuthenticated$.subscribe(isAuth => {
+            this.isAuthenticated = isAuth;
+            this.buildMenu();
+        });
+
+        this.authService.role$.subscribe(role => {
+            this.isAdmin = role?.toLowerCase() === 'admin';
+            this.buildMenu(); // 🔄 reconstruye menú si cambia rol
+        });
+
+
+    }
+
+    buildMenu() {
         this.items = [
-            {
-                label: 'Inicio',
-                icon: 'pi pi-home',
-                routerLink: ['/']
+            { label: 'Inicio', icon: 'pi pi-home', routerLink: ['/'] },
+            { label: 'Productos', icon: 'pi pi-heart-fill', routerLink: ['/comprar-productos'] },
+            { label: 'Kits', icon: 'pi pi-shopping-bag', routerLink: ['/Kits'] },
+            { label: "Carrito", icon: "pi pi-shopping-cart", routerLink: ['/carrito'] }
+        ];
 
-            },
-            {
-                label: 'Productos',
-                icon: 'pi pi-heart-fill',
-                routerLink: ['/comprar-productos']
-            },
-            {
-                label: 'Kits',
-                icon: 'pi pi-shopping-bag',
-                routerLink: ['/Kits']
-            },
-
-            {
-                "label": "Carrito",
-                "icon": "pi pi-shopping-cart",
-                routerLink: ['/carrito']
-            },
-
-
-        ]
-
-        if (!this.isAuthenticated) {
-            this.items.push({
-                label: "Iniciar Sesión",
-                icon: "pi pi-shopping-cart",
-                routerLink: ['/miperfil']
-            });
-            this.items.push({
-                label: "Registrate",
-                icon: "pi pi-shopping-cart",
-                routerLink: ['/miperfil']
-            });
-
-
-        }else{
+        if (this.isAuthenticated) {
             this.items.push({
                 label: 'Perfil',
                 icon: 'pi pi-user',
                 items: [
-                    {
-                        label: 'Mi Perfil',
-                        icon: 'pi pi-user',
-                        routerLink: ['/miperfil']
+                    { label: 'Mi Perfil', icon: 'pi pi-user', routerLink: ['/miperfil'] },
+                    { label: 'Mis compras', icon: 'pi pi-server', routerLink: ['/compras'] },
+                    { label: 'Administrar suscripción', icon: 'pi pi-server', routerLink: ['/compras'] },
+                ]
+            });
+        } else {
+            this.items.push(
+                { label: "Iniciar Sesión / Registrarse", icon: "pi pi-user", routerLink: ['/miperfil'] },
+            );
+        }
 
+        if (this.isAdmin) {
+            this.items.push({
+                label: 'Panel de admin',
+                icon: 'pi pi-lock',
+                items: [
+                    {
+                        label: 'Productos',
+                        icon: 'pi pi-box',
+                        items: [
+                            { label: 'Editar', icon: 'pi pi-pencil', routerLink: ['/editarproductos'] },
+                            { label: 'Crear', icon: 'pi pi-plus', routerLink: ['/crearProducto'] }
+                        ]
                     },
                     {
-                        label: 'registrar periodo',
-                        icon: 'pi pi-server',
-                        routerLink: ['/registrarperiodo']
+                        label: 'Kits',
+                        icon: 'pi pi-th-large',
+                        items: [
+                            { label: 'Editar', icon: 'pi pi-pencil', routerLink: ['/editarKits'] },
+                            { label: 'Crear', icon: 'pi pi-plus', routerLink: ['/crearKit'] }
+                        ]
                     },
                     {
-                        label: 'Mis compras',
-                        icon: 'pi pi-server',
-                        routerLink: ['/compras']
-
+                        label: 'Pedidos',
+                        icon: 'pi pi-shopping-cart',
+                        routerLink: ['GestionDePedidos']
                     }
                 ]
             });
         }
-
-        if (localStorage.getItem("role")) {
-            console.log("entro al if de amin");
-            this.items.push(
-                {
-                    label: 'Panel de admin',
-                    icon: 'pi pi-lock',
-                    items: [
-                        {
-                            label: 'Productos',
-                            icon: 'pi pi-box', // Representa una caja, ideal para productos.
-                            items: [
-                                {
-                                    label: 'Editar',
-                                    icon: 'pi pi-pencil', // El lápiz es común para editar.
-                                    routerLink: ['/editarproductos']
-                                },
-                                {
-                                    label: 'Crear',
-                                    icon: 'pi pi-plus', // El símbolo de más indica agregar o crear.
-                                    routerLink: ['/crearProducto']
-                                }
-                            ]
-                        },
-                        {
-                            label: 'Kits',
-                            icon: 'pi pi-th-large', // Las cubos sugieren conjuntos o kits.
-                            items: [
-                                {
-                                    label: 'Editar',
-                                    icon: 'pi pi-pencil',
-                                    routerLink: ['/editarKits']
-                                },
-                                {
-                                    label: 'Crear',
-                                    icon: 'pi pi-plus',
-                                    routerLink: ['/crearKit']
-                                }
-                            ]
-                        },
-                        {
-                            label: 'Pedidos',
-                            icon: 'pi pi-shopping-cart',
-                            routerLink: ['GestionDePedidos']
-                        }
-
-                    ]
-                }
-            );
-
-            
-        }else{
-            console.log(localStorage.getItem("role")?.trim() ?? "");
-            console.log("no entro al if de admin")
-        }
     }
+
 
 }

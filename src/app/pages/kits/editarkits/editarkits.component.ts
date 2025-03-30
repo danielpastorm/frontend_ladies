@@ -421,40 +421,40 @@ export class EditarkitsComponent {
 
 
 
-  update() {
-    this.loading = true;
-    console.log(this.selectKit)
+  // update() {
+  //   this.loading = true;
+  //   console.log(this.selectKit)
 
-    const kitToUpdate: Kit = {
-      id: this.selectedKit.kitId,           // suponiendo que selectedKit tiene "id" en lugar de "Id"
-      nombre: this.selectedKit.kitNombre,   // y "nombre" en lugar de "Nombre"
-      descripcion: this.selectedKit.kitDescripcion,
-      disponible: this.selectedKit.disponible,
-      productosEnKit: this.selectedKit.productos
-    };
+  //   const kitToUpdate: Kit = {
+  //     id: this.selectedKit.kitId,           // suponiendo que selectedKit tiene "id" en lugar de "Id"
+  //     nombre: this.selectedKit.kitNombre,   // y "nombre" en lugar de "Nombre"
+  //     descripcion: this.selectedKit.kitDescripcion,
+  //     disponible: this.selectedKit.disponible,
+  //     productosEnKit: this.selectedKit.productos
+  //   };
 
-    this.productService.updateKit(kitToUpdate).subscribe({
-      next: (response: string) => {
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Kit actualizado',
-          detail: response  // Por ejemplo: "Producto editado correctamente"
-        });
-        // Actualiza la lista local de productos o redirige según sea necesario
-        this.visible = false;
-        this.loading = false;
-      },
-      error: (error) => {
-        console.error('Error al actualizar el kit:', error);
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'No se pudo actualizar el kit'
-        });
-        this.loading = false;
-      }
-    });
-  }
+  //   this.productService.updateKit(kitToUpdate).subscribe({
+  //     next: (response: string) => {
+  //       this.messageService.add({
+  //         severity: 'success',
+  //         summary: 'Kit actualizado',
+  //         detail: response  // Por ejemplo: "Producto editado correctamente"
+  //       });
+  //       // Actualiza la lista local de productos o redirige según sea necesario
+  //       this.visible = false;
+  //       this.loading = false;
+  //     },
+  //     error: (error) => {
+  //       console.error('Error al actualizar el kit:', error);
+  //       this.messageService.add({
+  //         severity: 'error',
+  //         summary: 'Error',
+  //         detail: 'No se pudo actualizar el kit'
+  //       });
+  //       this.loading = false;
+  //     }
+  //   });
+  // }
 
 
   onSelect(event: any): void {
