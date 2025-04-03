@@ -20,7 +20,7 @@ export const appConfig: ApplicationConfig = {
       theme: {
           preset: Lara,
           options: {
-            darkModeSelector: 'none' // Desactiva el modo oscuro
+            darkModeSelector: 'dark' // Desactiva el modo oscuro
           }
           
       }

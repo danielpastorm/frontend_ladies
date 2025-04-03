@@ -17,6 +17,7 @@ import { Dialog } from 'primeng/dialog';
 import { Producto } from '../../../Data/producto.types';
 import { FloatLabel } from 'primeng/floatlabel';
 import { MessageService } from 'primeng/api';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
 
 import { FileUpload } from 'primeng/fileupload';
 
@@ -52,7 +53,7 @@ import { Dropdown, DropdownModule } from 'primeng/dropdown';
   imports: [
     DataView, FileUpload, Badge, BadgeModule, ProgressBar, RippleModule, ToastModule, FormsModule, DialogModule,
     ButtonModule, DrawerModule, InputGroupModule, InputGroupAddonModule, InputTextModule, InputNumberModule, FloatLabelModule, CarouselModule, ToggleButtonModule,
-    Tag, DropdownModule,
+    Tag, DropdownModule, ProgressSpinnerModule,
     TableModule,
     RatingModule,
     CommonModule,
@@ -84,6 +85,7 @@ export class NuestrosProductosComponent implements OnInit {
 
 
   uploadedFiles: any[] = [];
+  cargando: boolean = true;
 
 
 
@@ -104,7 +106,7 @@ export class NuestrosProductosComponent implements OnInit {
   constructor(private http: HttpClient, private productService: ProductService, private messageService: MessageService, private cartService: ProductService) { }
 
   ngOnInit() {
-    // Simula cargar kits
+    this.cargando = true;
     this.productService.getProducts().subscribe(data => {
       this.productos = data;
       console.log('Productos cargados:', this.productos);
@@ -116,13 +118,13 @@ export class NuestrosProductosComponent implements OnInit {
 
       this.kits = this.productosCatalogo.map(kit => {
         const categorias = kit.categoriasJson ? JSON.parse(kit.categoriasJson).categorias : [];
-        kit.imagenes = "https://ladies-first.shop/uploads/20/Captura%20de%20pantalla%202024-01-11%20145645.png,https://ladies-first.shop/uploads/20/Captura%20de%20pantalla%202024-01-11%20145645.png"
         return {
           ...kit,
-          imagenesArray: kit.imagenes?.split(',') || [],
+          imagenesArray: kit.imagenes?.split(';') || [],
           categorias
         };
       });
+      this.cargando = false;
 
       console.log('Kits procesados:', this.kits);
     });
@@ -130,6 +132,9 @@ export class NuestrosProductosComponent implements OnInit {
 
   }
 
+  obtenerUrlImagen(id: number, nombreImagen: string): string {
+    return `https://localhost:7027/uploads/kit_${id}/${nombreImagen}`;
+  }
 
   seleccionarKit(kit: any) {
     this.kitSeleccionado = JSON.parse(JSON.stringify(kit)); // copia profunda
@@ -167,7 +172,7 @@ export class NuestrosProductosComponent implements OnInit {
   getFirstImage(images: string): string {
     if (!images) return ''; // Verifica que no sea undefined o vacío
 
-    const firstImage = images.split(',')[0].trim(); // Obtiene la primera imagen y elimina espacios
+    const firstImage = images.split(';')[0].trim(); // Obtiene la primera imagen y elimina espacios
     return decodeURIComponent(firstImage); // Decodifica caracteres especiales como %20
   }
 
@@ -243,7 +248,7 @@ export class NuestrosProductosComponent implements OnInit {
     const p = this.productos.find(prod => prod.id === id);
     return p?.nombre || `Producto ID: ${id}`;
   }
-  
+
 
 
 

@@ -18,12 +18,11 @@ import { RegisterResponse } from './services/auth/auth.service';
 import { Dialog } from 'primeng/dialog';
 import { DatePicker, DatePickerModule } from 'primeng/datepicker';
 import { Fluid, FluidModule } from 'primeng/fluid';
-
-
+import { MenuModule } from 'primeng/menu';
 @Component({
     selector: 'app-root',
     imports: [Toast, ButtonModule, RouterOutlet, CommonModule, Dialog, DatePickerModule, FluidModule,
-        TableModule,
+        TableModule, MenuModule,
         RouterModule,
         MenubarModule,
         InputTextModule,
@@ -61,6 +60,7 @@ export class AppComponent {
     userName: string = '';
     value: string | undefined;
     items: MenuItem[] | undefined;
+    endItems: MenuItem[] | undefined;
 
     title = 'Ladies First';
     role: string = "";
@@ -266,8 +266,7 @@ export class AppComponent {
         this.items = [
             { label: 'Inicio', icon: 'pi pi-home', routerLink: ['/'] },
             { label: 'Productos', icon: 'pi pi-heart-fill', routerLink: ['/comprar-productos'] },
-            { label: 'Kits', icon: 'pi pi-shopping-bag', routerLink: ['/Kits'] },
-            { label: "Carrito", icon: "pi pi-shopping-cart", routerLink: ['/carrito'] }
+            { label: 'Kits', icon: 'pi pi-shopping-bag', routerLink: ['/Kits'] }
         ];
 
         if (this.isAuthenticated) {
@@ -278,12 +277,14 @@ export class AppComponent {
                     { label: 'Mi Perfil', icon: 'pi pi-user', routerLink: ['/miperfil'] },
                     { label: 'Mis compras', icon: 'pi pi-server', routerLink: ['/compras'] },
                     { label: 'Administrar suscripción', icon: 'pi pi-server', routerLink: ['/compras'] },
+                    { label: "Carrito", icon: "pi pi-shopping-cart", routerLink: ['/carrito'] }
+
                 ]
             });
         } else {
-            this.items.push(
-                { label: "Iniciar Sesión / Registrarse", icon: "pi pi-user", routerLink: ['/miperfil'] },
-            );
+            this.endItems = [
+                { label: 'Iniciar Sesión / Registrarse', icon: 'pi pi-user', routerLink: ['/miperfil'] }
+            ];
         }
 
         if (this.isAdmin) {

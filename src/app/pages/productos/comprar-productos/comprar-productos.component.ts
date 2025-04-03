@@ -6,18 +6,22 @@ import { ProductService } from '../../../services/product.service';
 import { Producto } from '../../../Data/producto.types';
 import { AuthService } from '../../../services/auth/auth.service';
 import { MessageService } from 'primeng/api';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
+
 @Component({
   selector: 'app-comprar-productos',
-  imports: [CardModule, ButtonModule, CommonModule],
+  imports: [CardModule, ButtonModule, CommonModule, ProgressSpinnerModule],
   templateUrl: './comprar-productos.component.html',
   styleUrl: './comprar-productos.component.css'
 })
 export class ComprarProductosComponent {
   products: any[] = []
+  cargando: boolean = false;
 
   constructor(private productoService: ProductService, private auth: AuthService, private cartService: ProductService, private messageService: MessageService) {}
 
   ngOnInit() {
+    this.cargando = true;
     this.fetchProducts();
   }
 
@@ -25,9 +29,12 @@ export class ComprarProductosComponent {
     this.productoService.getProductsMini()
       .then((data: Producto[]) => {
         this.products = data;
+        this.cargando = false;
       })
       .catch(error => {
         console.error('Error al obtener productos:', error);
+        this.cargando = false;
+
       });
   }
   

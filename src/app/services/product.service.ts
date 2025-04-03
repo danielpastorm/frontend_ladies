@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { Producto } from '../Data/producto.types';
 import { Categorias, Kit } from '../Data/kit.types';
 import { KitDetail } from '../Data/kit.types';
-
+import { Kit_get } from '../Data/kit.types';
 
 @Injectable({
   providedIn: 'root'
@@ -52,10 +52,10 @@ export class ProductService {
   }
 
   
-  // updateKit(product: Kit): Observable<string> {
-  //   return this.http.put<string>(
-  //     `${this.url_kits}/EditKit/${product.id}`, product);
-  // } 
+  updateKit(product: Kit_get): Observable<string> {
+    return this.http.put<string>(
+      `${this.url_kits}/EditKit/${product.id}`, product);
+  } 
   
   
   
@@ -92,6 +92,10 @@ export class ProductService {
 
   getKits(): Observable<KitDetail[]> {
     return this.http.get<KitDetail[]>(`${this.home}Kits/ListarKits`);
+  }
+
+  getKitById(id: number): Observable<Kit_get[]>{
+    return this.http.get<Kit_get[]>(`${this.home}Kits/ObtenerKit/${id}`);
   }
 
 

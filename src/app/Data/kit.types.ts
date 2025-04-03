@@ -22,9 +22,19 @@ export interface Producto {
     categoriasJson: string
   }
 
+  export interface Kit_get {
+    id: number;
+    nombre: string;
+    descripcion: string;
+    imagenes: string;
+    precio: number;
+    disponible: boolean;
+    categoriasJson: string; // contiene el JSON serializado
+  }
 
   // Define una interfaz para el resultado plano del SP o endpoint
   export interface KitDetail {
+    categoriasJson: string;
     kitId: number;
     kitNombre: string;
     kitDescripcion: string;

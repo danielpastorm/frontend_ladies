@@ -1,183 +1,164 @@
-<div class="card">
-    <p-toast></p-toast>
-    <div class="product-grid">
-        <div *ngFor="let kitGroup of kitsGrouped" class="product-card">
-            <!-- Si en el futuro quieres mostrar una imagen del kit, puedes usar la sección product-image -->
-            <!-- Carrusel de imágenes -->
+<div *ngIf="cargando" class="loading-overlay">
+    <p-progressSpinner></p-progressSpinner>
+</div>
 
 
-            <div *ngIf="kitGroup.imagenes && kitGroup.imagenes.trim().length > 0" class="image-container">
-                <p-carousel [value]="getKitImages(kitGroup.imagenes)" [numVisible]="1" [circular]="true"
-                    [autoplayInterval]="3000">
-                    <ng-template pTemplate="item" let-image>
-                        <div class="image-item">
-                            <img [src]="'https://ladies-first.shop/uploads/kit_' + kitGroup.kitId + '/' + image"
-                                alt="Imagen del kit">
-                        </div>
-                    </ng-template>
-                </p-carousel>
-            </div>
+<div class="grid" *ngIf="kits != undefined">
+    <div class="col-12 md:col-3" *ngFor="let kit of kits">
+        <p-card 
+  [header]="kit.nombre" 
+  [subheader]="kit.descripcion" 
+  class="text-center"
+  [ngStyle]="{
+    '--p-card-background': kit.disponible ? '#d4edda' : '#f8d7da',
+    '--p-card-text-color': kit.disponible ? '#155724' : '#721c24'
+  }">
+  <button pButton label="Editar Kit" class="mt-3" (click)="editarKit(kit)"></button>
+</p-card>
 
-
-            <div class="product-info">
-                <!-- Datos del kit -->
-                <h3>{{ kitGroup.kitNombre }}</h3>
-                <p>{{ kitGroup.kitDescripcion }}</p>
-                <p>
-                    <strong>Precio Total:</strong>
-                    {{ kitGroup.kitPrecio | currency }}
-                </p>
-                <p>
-                    <strong>Disponible:</strong>
-                    {{ kitGroup.disponible ? 'Sí' : 'No' }}
-                </p>
-                <hr>
-                <!-- Lista de productos -->
-                <h4>Productos</h4>
-                <ul>
-                    <li *ngFor="let prod of kitGroup.productos">
-                        <strong>{{ prod.nombreProducto }}</strong> &ndash;
-                        Cantidad: {{ prod.cantidad }} &ndash;
-                        Precio Unitario: {{ prod.precioUnitario | currency }}
-                    </li>
-                </ul>
-                <p-button label="Editar" icon="pi pi-pencil" (click)="selectKit(kitGroup)" class="edit-button" />
-
-            </div>
-        </div>
     </div>
 </div>
 
 
-<p-dialog header="Editar Kit" [(visible)]="displayEditModal" modal="true" [style]="{'width': '40rem'}"
-    [contentStyle]="{'overflow-y': 'auto'}" appendTo="body">
-    <div class="p-fluid">
+<div class="card flex justify-center">
+    <p-dialog header="Editar Kit" [modal]="true" [(visible)]="abrirModal" [style]="{ width: '50rem' }"
+        [breakpoints]="{ '1199px': '75vw', '575px': '90vw' }">
 
-        <div class="grid">
-            <div class="col-12 md:col-12 mt-3 flex justify-content-end">
-                <p-button label="Actualizar" ></p-button>
+
+        <form [formGroup]="miFormulario" (ngSubmit)="onSubmit()" class="grid p-fluid">
+            <!-- Columna completa en móviles, mitad en pantallas md -->
+            <div class="col-12 md:col-6">
+                <p-floatLabel variant="in">
+                    <input pInputText id="nombre" formControlName="nombre" />
+                    <label for="nombre">Nombre del kit</label>
+                </p-floatLabel>
+                <small *ngIf="miFormulario.get('nombre')?.touched && miFormulario.get('nombre')?.invalid"
+                    class="p-error">
+                    El nombre es obligatorio.
+                </small>
             </div>
 
 
-            <div class="col-12 md:col-6 mt-3">
-                <p-floatlabel variant="on">
-                    <input pInputText id="on_label" [(ngModel)]="selectedKit.kitNombre" autocomplete="off" />
-                    <label for="on_label">Nombre del kit</label>
-                </p-floatlabel>
-            </div>
+            <div class="col-12 md:col-6">
 
-            <div class="col-12 md:col-6 mt-3">
-                <p-floatlabel variant="on">
-                    <input pInputText id="on_label" [(ngModel)]="selectedKit.kitDescripcion" autocomplete="off" />
-                    <label for="on_label">Descripción del kit</label>
-                </p-floatlabel>
-            </div>
-
-            <div class="col-12 md:col-12 mt-3">
-                <p-floatlabel variant="on">
-                    <p-inputnumber [(ngModel)]="selectedKit.kitPrecio" [showButtons]="true" inputId="stacked"
-                        mode="currency" currency="MXN" />
-                    <label for="on_label">Precio</label>
-                </p-floatlabel>
-            </div>
-
-            <div class="col-7 md:col-4 mt-3 ">
-                <p-select placeholder="Selecciona un producto" [options]="productos" optionLabel="nombre"
-                    [editable]="true" class="wd:40p" [(ngModel)]="selectedProducto" name="selectedProducto">
-                </p-select>
-            </div>
-
-
-            <div class="col-5 md:col-4 mt-3">
-                <p-floatlabel variant="on">
-                    <p-inputNumber [(ngModel)]="cantidad" [min]="1" placeholder="Cantidad" class="w-full md:w-56"
-                        name="cantidad"></p-inputNumber>
-                    <label for="on_label">Cantidad</label>
-                </p-floatlabel>
+                <p-floatLabel variant="in">
+                    <textarea rows="5" cols="30" id="descripcion" style="resize: none" class="h-full" pTextarea
+                        formControlName="descripcion"></textarea>
+                    <label for="descripcion">Descripción</label>
+                </p-floatLabel>
 
             </div>
 
-            <div class="col-3 md:col-3 mt-1">
-                <div class="p-field" style="margin-top: 10px;">
-                    <p-button label="Agregar" icon="pi pi-plus" (onClick)="agregarProducto()" class="w-full"
-                        severity="info" rounded />
+            <div class="col-12 md:col-6">
+                <p-floatLabel>
+                    <input pInputText id="precio" type="number" formControlName="precio" />
+                    <label for="precio">Precio</label>
+                </p-floatLabel>
+            </div>
 
+            <div class="col-12">
+                <label for="disponible">¿Disponible?</label>
+                <p-toggleButton formControlName="disponible" onLabel="Sí" offLabel="No"
+                    styleClass="w-full"></p-toggleButton>
+            </div>
+
+
+
+
+            <div class="col-12">
+                <button pButton type="submit" label="Guardar"></button>
+            </div>
+        </form>
+
+
+        <div class="col-12">
+            <p-card header="Crear nueva categoría">
+                <div class="flex justify-content-center align-items-center gap-2">
+                    <p-floatLabel>
+                        <input pInputText id="on_label" autocomplete="off" [(ngModel)]="categoria" name="categoria" />
+                        <label for="on_label">Categoría</label>
+                    </p-floatLabel>
+
+                    <p-button (click)="crearYAgregarCategoria()" label="Agregar" styleClass="p-button-sm" />
                 </div>
-            </div>
+            </p-card>
+        </div>
 
 
-            <div class="col-12 md:col-12 mt-3">
-
-                <p-table [value]="selectedKit.productos">
-                    <ng-template #header>
-                        <tr>
-                            <th>Nombre</th>
-                            <th>Descripción</th>
-
-                            <th style="width: 5rem"></th>
-                        </tr>
-                    </ng-template>
-                    <ng-template #body let-product>
-                        <tr>
-                            <td>{{ product.nombreProducto }}</td>
-                            <td>{{ product.precioUnitario }}</td>
-
-                            <td>
-                                <p-button icon="pi pi-trash" (click)="removeProductFromKit(product.productoId)"
-                                    severity="warn" rounded />
-                            </td>
-                        </tr>
-                    </ng-template>
-                </p-table>
-            </div>
+        <div class="col-12">
+            <p-card header="Categorías y productos">
 
 
-            <div class="col-12 md:col-12 mt-3">
+                <div *ngFor="let categoria of kitJson.categorias; let i = index" class="mb-4">
+                    <div class="flex justify-content-between align-items-center mb-2" style="background-color: pink;">
+                        <h5 class="m-0">{{ categoria.nombre }}</h5>
+                        <button class="p-button-sm p-button-danger" (click)="eliminarCategoriaDelKit(i)">
+                            <i class="pi pi-trash"></i>
+                        </button>
+                    </div>
 
-                <div class="card">
-                    <p-fileupload #fileUpload name="file"
-                        [url]="'https://ladies-first.shop/Images/AgregarImagenesKit/' + selectedKit.kitId"
-                        (onSelect)="onSelect($event)" (onUpload)="onUpload($event)" (onError)="onError($event)"
-                        (onClear)="onClear($event)" [auto]="true" [multiple]="true" accept="image/*"
-                        maxFileSize="4000000" mode="basic">
-                        <ng-template #empty>
-                            <div>Arrastra y suelta archivos para subirlos.</div>
-                        </ng-template>
-                    </p-fileupload>
+
+
+                    <!-- Agregar producto -->
+                    <div class="flex gap-2 align-items-center mb-2">
+                        <p-dropdown [options]="productosDropdown" [(ngModel)]="categoria.productoSeleccionado"
+                            optionLabel="label" placeholder="Selecciona producto" styleClass="w-12 md:w-6"></p-dropdown>
+
+                        <p-inputNumber [(ngModel)]="categoria.cantidadSeleccionada" placeholder="Cantidad" [min]="1"
+                            [max]="100" styleClass="w-4"></p-inputNumber>
+
+                        <p-button icon="pi pi-plus" (click)="agregarProductoACategoria(categoria)" label="Agregar"
+                            styleClass="p-button-sm"></p-button>
+                    </div>
+
+                    <!-- Productos actuales -->
+                    <ul class="list-none pl-3">
+                        <li *ngFor="let producto of categoria.productos"
+                            class="flex justify-content-between align-items-center mb-2">
+                            <div>
+                                {{ getNombreProducto(producto.id) }} (x{{ producto.cantidad }})
+                            </div>
+                            <button class="p-button-sm p-button-danger"
+                                (click)="eliminarProductoDeCategoria(categoria.nombre, producto.id)">
+                                <i class="pi pi-trash"></i>
+                            </button>
+                        </li>
+                    </ul>
                 </div>
 
+            </p-card>
+        </div>
 
-                <p-table [value]="getKitImages(selectedKit.imagenes)">
-                    <ng-template pTemplate="header">
-                        <tr>
-                            <th>Imagen</th>
-                            <th style="width: 5rem"></th>
-                        </tr>
+        <div class="col-12">
+            <p-card header="Imágenes actuales">
+                <div class="grid">
+                    <div class="col-6 md:col-3" *ngFor="let img of getImagenesArray()">
+                        <div class="text-center p-2 border-1 surface-border border-round">
+                            <img [src]="img" alt="Imagen del kit" class="w-full h-10rem object-contain mb-2" />
+                            <p-button icon="pi pi-trash" label="Eliminar" (click)="eliminarImagen(img)"></p-button>
+                        </div>
+                    </div>
+                </div>
+
+            </p-card>
+        </div>
+
+
+        <div class="col-12 mt-4">
+            <p-card header="Subir imágenes al kit">
+                <p-fileUpload name="file" [url]="'https://localhost:7027/Images/AgregarImagenesKit/' + idKit"
+                    (onUpload)="imagenSubida($event)" [auto]="true" [multiple]="false" accept="image/*"
+                    maxFileSize="3000000" mode="advanced">
+                    <ng-template #empty>
+                        <div class="text-center">Arrastra o selecciona una imagen para subir</div>
                     </ng-template>
-                    <ng-template pTemplate="body" let-img let-i="index">
-                        <tr>
-                            <td>
-                                <img [src]="'https://ladies-first.shop/uploads/kit_' + selectedKit.kitId + '/' + img"
-                                    alt="Imagen del kit" style="max-width: 100px;">
-                            </td>
-                            <td>
-                                <p-button icon="pi pi-trash" (click)="removeKitImage(img)" severity="warn"
-                                    rounded></p-button>
-                            </td>
-                        </tr>
-                    </ng-template>
-                </p-table>
-            </div>
-
-
-
-
-
-
+                </p-fileUpload>
+            </p-card>
         </div>
 
 
 
-    </div>
 
-</p-dialog>
+
+    </p-dialog>
+</div>

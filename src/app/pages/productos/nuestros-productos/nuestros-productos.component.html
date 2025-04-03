@@ -1,16 +1,27 @@
+<div *ngIf="cargando" class="loading-overlay">
+    <p-progressSpinner></p-progressSpinner>
+</div>
+
+
 <div class="grid" *ngIf="kits.length > 0">
     <div class="col-12 md:col-3" *ngFor="let kit of kits">
 
         <p-card [header]="kit.nombre" [subheader]="kit.descripcion" class="text-center">
 
             <!-- Carrusel de imágenes (opcional) -->
-            <p-carousel *ngIf="kit.imagenesArray.length > 0" [value]="kit.imagenesArray" [numVisible]="1"
-                [circular]="true" [autoplayInterval]="4000">
-                <ng-template let-img pTemplate="item">
-                    <img [src]="'https://ladies-first.shop/uploads/2/' + 'Captura de pantalla 2024-01-12 215138.png'"
-                        alt="imagen" class="w-48 h-48 object-contain border-round mx-auto" />
-                </ng-template>
-            </p-carousel>
+            <div class="w-full flex justify-center">
+                <div class="w-40 md:w-56">
+                    <p-carousel *ngIf="kit.imagenesArray?.length > 0" [value]="kit.imagenesArray" [numVisible]="1"
+                        [circular]="true" [autoplayInterval]="4000">
+                        <ng-template let-img pTemplate="item">
+                            <img [src]="obtenerUrlImagen(kit.id, img)" alt="imagen"
+                                class="w-full h-auto object-contain border-round mx-auto" />
+                        </ng-template>
+                    </p-carousel>
+                </div>
+            </div>
+
+
 
 
             <!-- Categorías -->
@@ -49,10 +60,9 @@
                     'opacity-60': categoria.idProductoSeleccionado !== producto.id
                   }">
 
-                    <img
-  [src]="'https://ladies-first.shop/uploads/2/Captura%20de%20pantalla%202024-01-12%20215138.png'"
-  alt="{{ getNombreProducto(producto.id) }}"
-  style="width: 60px; height: 60px; object-fit: cover; border-radius: 50%; border: 2px solid pink; background: white;" />
+                    <img [src]="'https://ladies-first.shop/uploads/2/Captura%20de%20pantalla%202024-01-12%20215138.png'"
+                        alt="{{ getNombreProducto(producto.id) }}"
+                        style="width: 60px; height: 60px; object-fit: cover; border-radius: 50%; border: 2px solid pink; background: white;" />
 
                     <small class="mt-2">{{ getNombreProducto(producto.id) }}</small>
                 </div>

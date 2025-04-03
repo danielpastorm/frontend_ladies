@@ -1,17 +1,30 @@
 <main class="main w-full flex flex-col items-center">
   <div class="content w-full max-w-screen-xl">
     <!-- Ejemplo de login en la menubar -->
-    <p-menubar [model]="items" >
 
 
-      <ng-template pTemplate="end" class="pe-4">
+    <p-menubar [model]="items" class="shadow-md pink-menubar">
+      <!-- Logo + texto -->
+      <ng-template pTemplate="start">
+        <a href="/" class="flex items-center gap-2">
+          <img src="https://ladies-first.shop/uploads/resources/final-3.png" alt="logo"
+          class="w-6 h-6 sm:w-8 sm:h-8 object-contain" />
+     
 
-        <p-button *ngIf="isAuthenticated" label="Cerrar sesión" variant="text" severity="danger" (click)="logout()"
-          [loading]="isLoggingOut">
-        </p-button>
+          <span class="italic font-bold text-purple-800 text-lg whitespace-nowrap hidden xs:inline">Ladies First</span>
+        </a>
+      </ng-template>
 
+      <!-- Botón cerrar sesión o login, siempre visible aunque colapse -->
+      <ng-template pTemplate="end">
+        <div class="flex items-center gap-4 pe-4">
+          <p-menu *ngIf="!isAuthenticated" [model]="endItems" styleClass="menu-end">
+          </p-menu>
 
-
+          <p-button *ngIf="isAuthenticated" label="Cerrar sesión" class="whitespace-nowrap" severity="danger"
+            variant="text" (click)="logout()" [loading]="isLoggingOut">
+          </p-button>
+        </div>
       </ng-template>
     </p-menubar>
 
