@@ -1,18 +1,42 @@
-<div class="subscription-container">
-    <h2>Gestiona tu Suscripción</h2>
-    
-    <div *ngIf="!isSubscribed" class="subscription-section">
-      <p>Suscríbete para acceder a nuestro servicio premium.</p>
-      <label for="plan">Selecciona un plan:</label>
-      <select id="plan" [(ngModel)]="selectedPlan" class="subscription-select">
-        <option *ngFor="let plan of plans" [value]="plan.id">{{ plan.name }} - {{ plan.price | currency }}</option>
-      </select>
-      <button pButton label="Suscribirse" class="subscribe-button" (click)="subscribe()"></button>
+<div *ngIf="suscripciones && suscripciones.length > 0; else noSubs">
+  <div *ngFor="let suscripcion of suscripciones" class="subscription-card">
+    <div class="subscription-card-header" 
+         [ngClass]="{'active': suscripcion.status === 'active', 'cancelled': suscripcion.status === 'canceled'}">
+      <ng-container *ngIf="suscripcion.status === 'active'; else cancelledHeader">
+        Suscripción Activa
+      </ng-container>
+      <ng-template #cancelledHeader>
+        Suscripción Cancelada
+      </ng-template>
     </div>
-  
-    <div *ngIf="isSubscribed" class="subscription-section active-subscription">
-      <p>Actualmente estás suscrito al plan <strong>{{ currentPlan.name }}</strong>.</p>
-      <button pButton label="Administrar Suscripción" class="manage-button" (click)="manageSubscription()"></button>
-      <button pButton label="Cancelar Suscripción" class="cancel-button p-button-danger" (click)="cancelSubscription()"></button>
+    <div class="subscription-card-body">
+      <ng-container *ngIf="suscripcion.status === 'active'; else cancelledContent">
+        <p>
+          <strong>Periodo:</strong> 
+          Desde {{ suscripcion.currentPeriodStart | date:'shortDate' }} hasta 
+          {{ suscripcion.currentPeriodEnd | date:'shortDate' }}<br>
+          <strong>Monto:</strong> 
+          {{ suscripcion.items[0]?.price?.unitAmount / 100 | currency:suscripcion.items[0]?.price?.currency }} 
+          ({{ suscripcion.items[0]?.price?.recurring?.interval }})
+        </p>
+        <button (click)="cancelarSuscripcion(suscripcion.id)" class="btn-cancel">
+          Cancelar Suscripción
+        </button>
+      </ng-container>
+      <ng-template #cancelledContent>
+        <p>Tu suscripción fue cancelada.</p>
+        <button (click)="redireccionarAKits()" class="btn-kits">
+          Ver Nuestros Kits
+        </button>
+      </ng-template>
     </div>
   </div>
+</div>
+<ng-template #noSubs>
+  <div class="no-subs">
+    <p>No tienes suscripciones activas.</p>
+    <button (click)="redireccionarAKits()" class="btn-kits">
+      Ver nuestros kits
+    </button>
+  </div>
+</ng-template>

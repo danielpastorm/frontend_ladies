@@ -7,18 +7,30 @@ import { Producto } from '../../../Data/producto.types';
 import { AuthService } from '../../../services/auth/auth.service';
 import { MessageService } from 'primeng/api';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { GalleriaModule } from 'primeng/galleria';
 
 @Component({
   selector: 'app-comprar-productos',
-  imports: [CardModule, ButtonModule, CommonModule, ProgressSpinnerModule],
+  imports: [CardModule, ButtonModule, CommonModule, ProgressSpinnerModule, GalleriaModule],
+  providers: [],
   templateUrl: './comprar-productos.component.html',
   styleUrl: './comprar-productos.component.css'
 })
 export class ComprarProductosComponent {
   products: any[] = []
   cargando: boolean = false;
+  responsiveOptions: any[] = [
+    {
+      breakpoint: '1300px',
+      numVisible: 4
+    },
+    {
+      breakpoint: '575px',
+      numVisible: 1
+    }
+  ];
 
-  constructor(private productoService: ProductService, private auth: AuthService, private cartService: ProductService, private messageService: MessageService) {}
+  constructor(private productoService: ProductService, private auth: AuthService, private cartService: ProductService, private messageService: MessageService) { }
 
   ngOnInit() {
     this.cargando = true;
@@ -37,17 +49,17 @@ export class ComprarProductosComponent {
 
       });
   }
-  
-  
-  
+
+
+
   getFirstImage(images: string): string {
     if (!images) return ''; // Verifica que no sea undefined o vacío
-    
+
     const firstImage = images.split(';')[0].trim(); // Obtiene la primera imagen y elimina espacios
     return decodeURIComponent(firstImage); // Decodifica caracteres especiales como %20
   }
 
-  pagar(){
+  pagar() {
     console.log("pago");
     this.auth.pay(50).subscribe({
       next: (response) => console.log("Pago exitoso:", response),
@@ -80,5 +92,21 @@ export class ComprarProductosComponent {
       });
     });
   }
+
+  getImagesArray(imagenes: string, productId: number) {
+    if (!imagenes) return [];
   
+    return imagenes.split(';').map(imageName => {
+      const imagePath = `https://ladies-first.shop/uploads/${productId}/${imageName.trim()}`;
+      return {
+        itemImageSrc: imagePath,
+        thumbnailImageSrc: imagePath,
+        alt: 'Imagen del producto',
+        title: 'Producto'
+      };
+    });
+  }
+  
+
+
 }

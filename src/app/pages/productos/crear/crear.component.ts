@@ -28,13 +28,13 @@ interface UploadEvent {
 
 @Component({
   selector: 'app-crear',
-  imports: [ReactiveFormsModule, Button, FileUpload, DropdownModule, Card,
+  imports: [ReactiveFormsModule, Button, DropdownModule, Card,
     InputIcon,
     IconField,
     InputTextModule,
     FormsModule,
     ToggleButtonModule,
-    InputNumber, ButtonModule, CommonModule, BadgeModule, Badge, ProgressBar, ToastModule
+    InputNumber, ButtonModule, CommonModule, BadgeModule, ToastModule
   ],
   providers: [ProductService],
   templateUrl: './crear.component.html',

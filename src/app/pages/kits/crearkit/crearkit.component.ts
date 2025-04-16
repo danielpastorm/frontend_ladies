@@ -82,13 +82,11 @@ interface CategoriaEnKit {
 
 @Component({
   selector: 'app-crearkit',
-  imports: [ReactiveFormsModule, Button, FileUpload, DropdownModule, Card, FloatLabel, Dialog,
-    InputIcon, DialogModule,
-    IconField,
+  imports: [ReactiveFormsModule, Button, FileUpload, DropdownModule, Card, FloatLabel, DialogModule,
     InputTextModule,
     FormsModule,
     ToggleButtonModule,
-    InputNumber, ButtonModule, CommonModule, BadgeModule, Badge, ProgressBar, ToastModule, Select],
+    InputNumber, ButtonModule, CommonModule, BadgeModule, ToastModule],
   templateUrl: './crearkit.component.html',
   styleUrl: './crearkit.component.css'
 })
@@ -443,10 +441,24 @@ export class CrearkitComponent {
     const p = this.productos.find(p => p.id === id);
     return p?.nombre || 'Producto no encontrado';
   }
+
   getImagenProducto(id: number): string {
-    id = 20;
-    return `https://ladies-first.shop/uploads/${id}/Captura de pantalla 2024-01-11 145645.png`;
+    // Buscar el producto que tenga el id dado en this.productos
+    const producto = this.productos.find(p => p.id === id);
+    if (producto && producto.imagenes) {
+      // Se asume que 'imagenes' es un string con los nombres de archivo separados por ';'
+      const imagenesArray = producto.imagenes.split(';').filter(img => img.trim().length > 0);
+      if (imagenesArray.length > 0) {
+        // Toma la primera imagen
+        const primeraImagen = imagenesArray[0].trim();
+        // Puedes codificar la URL si es necesario con encodeURI
+        return `https://ladies-first.shop/uploads/${id}/${encodeURI(primeraImagen)}`;
+      }
+    }
+    // Retorna una imagen por defecto si no se encuentra
+    return `https://ladies-first.shop/uploads/default-placeholder.png`;
   }
+  
 
 
   guardarKit() {

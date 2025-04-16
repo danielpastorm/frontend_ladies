@@ -2,6 +2,8 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
+import { ProductService } from '../../../services/product.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-suscripcion',
@@ -10,31 +12,39 @@ import { ButtonModule } from 'primeng/button';
   styleUrl: './suscripcion.component.css'
 })
 export class SuscripcionComponent {
-  isSubscribed = false;
-  selectedPlan: string = '';
+  suscripciones: any[] = [];
 
-  plans = [
-    { id: 'basic', name: 'Plan Básico', price: 9.99 },
-    { id: 'premium', name: 'Plan Premium', price: 19.99 },
-  ];
-  currentPlan = { name: '', id: '' };
+  constructor(private subscriptionService: ProductService, private router: Router) {}
 
-  subscribe() {
-    if (!this.selectedPlan) {
-      alert('Selecciona un plan antes de suscribirte.');
-      return;
-    }
-    this.isSubscribed = true;
-    this.currentPlan = this.plans.find(plan => plan.id === this.selectedPlan) || { name: '', id: '' };
+  ngOnInit(): void {
+    // Supón que ya tienes el CustomerId del usuario logueado
+    const customerId = 'cus_S4Ri5XycZW4nfj';
+    this.subscriptionService.listSubscriptions(customerId).subscribe({
+      next: data => {
+        // Asumiendo que data.data es el array de suscripciones
+        this.suscripciones = data;
+        console.log("subs", this.suscripciones)
+      },
+      error: err => {
+        console.error('Error al cargar suscripciones:', err);
+      }
+    });
   }
 
-  manageSubscription() {
-    alert('Redirigiendo a la administración de suscripción...');
+  cancelarSuscripcion(subscriptionId: string): void {
+    this.subscriptionService.cancelSubscription(subscriptionId).subscribe({
+      next: resp => {
+        console.log('Suscripción cancelada:', resp);
+        // Actualiza la lista o muestra un mensaje
+      },
+      error: err => {
+        console.error('Error al cancelar la suscripción:', err);
+      }
+    });
   }
 
-  cancelSubscription() {
-    this.isSubscribed = false;
-    this.currentPlan = { name: '', id: '' };
-    alert('Tu suscripción ha sido cancelada.');
+  redireccionarAKits(): void {
+    // Redirige a la ruta de kits
+    this.router.navigate(['/Kits']);
   }
 }

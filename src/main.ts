@@ -5,10 +5,10 @@ import { provideRouter } from '@angular/router';
 import { routes } from './app/app.routes';
 import { provideHttpClient } from '@angular/common/http';
 import { registerLocaleData } from '@angular/common';
-import localeEs from '@angular/common/locales/es';
+import localeEsMX from '@angular/common/locales/es-MX';
 import { LOCALE_ID } from '@angular/core';
 
-registerLocaleData(localeEs);
+registerLocaleData(localeEsMX);
 
 bootstrapApplication(AppComponent, {
   ...appConfig,
@@ -17,6 +17,6 @@ bootstrapApplication(AppComponent, {
     provideRouter(routes),
     provideHttpClient(),
 
-    { provide: LOCALE_ID, useValue: 'es' }
+    { provide: LOCALE_ID, useValue: 'es-MX' }
   ]
 }).catch((err) => console.error(err));

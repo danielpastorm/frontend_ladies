@@ -51,11 +51,9 @@ interface UploadEvent {
 @Component({
   selector: 'app-editarkits',
   imports: [ButtonModule, RippleModule, ToastModule, TableModule, CommonModule, DrawerModule, FormsModule, Button,
-    InputGroupModule, InputGroupAddonModule, InputTextModule, InputNumberModule, FloatLabelModule, ToggleButtonModule, DataView,
-    FileUpload, Tag, Select, DropdownModule, ProgressSpinnerModule,
+    InputGroupModule, InputGroupAddonModule, InputTextModule, InputNumberModule, FloatLabelModule, ToggleButtonModule,
+    FileUpload, DropdownModule, ProgressSpinnerModule,
     BadgeModule, ReactiveFormsModule, TextareaModule, FloatLabel,
-    Badge,
-    ProgressBar,
     DialogModule, Card, CarouselModule],
   providers: [ConfirmationService],
   templateUrl: './editarkits.component.html',
@@ -272,7 +270,7 @@ export class EditarkitsComponent {
 
     return this.kitEditando.imagenes
       .split(';')
-      .map((img: string) => `https://localhost:7027/uploads/kit_${this.kitEditando.id}/${img.trim()}`);
+      .map((img: string) => `https://ladies-first.shop/uploads/kit_${this.kitEditando.id}/${img.trim()}`);
   }
 
 
@@ -287,10 +285,11 @@ export class EditarkitsComponent {
     this.actualizarKitDesdeBackend(this.kitEditando.id);
   }
 
+  loading: boolean = false;
   eliminarImagen(urlImagenCompleta: string) {
     const imageName = urlImagenCompleta.split('/').pop() ?? '';
     const kitId = this.kitEditando.id;
-
+    this.loading = true;
     this.productService.deleteImage(kitId, imageName, true).subscribe({
       next: () => {
         this.messageService.add({
@@ -299,6 +298,7 @@ export class EditarkitsComponent {
           detail: 'La imagen se eliminó correctamente'
         });
         this.actualizarKitDesdeBackend(kitId);
+        this.loading = false;
       },
       error: () => {
         this.messageService.add({
@@ -306,6 +306,7 @@ export class EditarkitsComponent {
           summary: 'Error',
           detail: 'No se pudo eliminar la imagen'
         });
+        this.loading = false;
       }
     });
   }

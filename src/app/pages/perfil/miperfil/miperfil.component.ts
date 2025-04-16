@@ -13,7 +13,7 @@ import { PasswordModule } from 'primeng/password';
 import { CalendarModule } from 'primeng/calendar';
 import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
 import { MessageService } from 'primeng/api';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, retry } from 'rxjs';
 import { CardModule } from 'primeng/card';
 import { SelectModule } from 'primeng/select';
 import { DatePicker } from 'primeng/datepicker';
@@ -32,9 +32,12 @@ export interface JwtPayload {
 }
 
 
+
+
 @Component({
   selector: 'app-miperfil',
-  imports: [CommonModule, Dialog, ButtonModule, InputTextModule, FormsModule, IftaLabelModule, FloatLabel, PasswordModule, CardModule, SelectModule, DatePicker, CalendarIcon
+  imports: [CommonModule, Dialog, ButtonModule, InputTextModule, FormsModule, IftaLabelModule, FloatLabel, PasswordModule,
+    CardModule, SelectModule, DatePicker,
 
   ],
   templateUrl: './miperfil.component.html',
@@ -50,6 +53,15 @@ export class MiperfilComponent {
     label: (i + 1).toString(),
     value: i + 1
   }));
+
+  calendarioCompleto: Date[] = [];
+  hoy: Date = new Date();
+
+  diasFertiles: Date[] = [];
+  diasInactivos: Date[] = [];
+  diasDePeriodo: Date[] = [];
+  fechaOvulacion!: Date;
+
 
 
   regular: boolean | null = null;
@@ -149,6 +161,8 @@ export class MiperfilComponent {
   displayLogin: boolean = false;
   displayRegister = false;
   role: string = "";
+  clasesDias: { [key: string]: string } = {};
+
 
 
 
@@ -171,9 +185,24 @@ export class MiperfilComponent {
 
   ngOnInit(): void {
 
+    const today = new Date();
+    const start = new Date(today.getFullYear(), today.getMonth(), 1);
+
+    const end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+      this.calendarioCompleto.push(new Date(d));
+    }
+
+
+
+
+
+
 
 
     this.cargarPerfil();
+
 
 
     registerModel: this.registerModel = {
@@ -206,6 +235,75 @@ export class MiperfilComponent {
 
 
   }
+
+  getClaseDia(dia: Date): string {
+    console.log(dia)
+    return ''
+    let fechaOvulacion: Date | null = null;
+
+
+    //console.log("dia del calendario: ", dia)
+
+    let diasFert = [1, 2, 3]
+    let day = dia.getDay();
+
+    // if (this.diaAprox && this.ultCiclo) {
+    //   const cicloDate = new Date(this.ultCiclo); // 👈 conversión explícita
+    //   fechaOvulacion = new Date(cicloDate);
+    //   fechaOvulacion.setDate(cicloDate.getDate() + this.diaAprox);
+    // }
+    //console.log("dia: ", day)
+    //console.log(diasFert.some(d => d == day))
+
+    if (diasFert.some(d => d == day)) return 'period'
+
+    // if (fechaOvulacion && this.diaIgual(dia, fechaOvulacion)) return 'ovulacion';
+    // if (this.diasFertiles?.some(d => this.diaIgual(d, dia))) return 'fertile';
+    // if (this.diasDePeriodo?.some(d => this.diaIgual(d, dia))) return 'periodo';
+    // if (this.diaIgual(dia, new Date())) return 'hoy';
+
+    return '';
+  }
+
+  generarClasesDias() {
+    this.clasesDias = {};
+    for (const dia of this.calendarioCompleto) {
+      const key = dia.toDateString();
+      this.clasesDias[key] = this.calcularClaseDia(dia);
+    }
+  }
+  
+  calcularClaseDia(dia: Date): string {
+    let fechaOvulacion: Date | null = null;
+  
+    // if (this.diaAprox && this.ultCiclo) {
+    //   const cicloDate = new Date(this.ultCiclo);
+    //   fechaOvulacion = new Date(cicloDate);
+    //   fechaOvulacion.setDate(cicloDate.getDate() + this.diaAprox);
+    // }
+
+    const diaUtCiclo = this.diaAprox ?? 0
+    if(this.diaAprox == dia.getDate() ) return 'ovulacion'
+    console.log("dia ult ciclo: ", this.diaAprox)
+    console.log("dia actual: ", dia.getDate())
+    let dias_ = [1,2,3]
+  
+    if (fechaOvulacion && this.diaIgual(dia, fechaOvulacion)) return 'ovulacion';
+    if (dias_.some(d => d == dia.getDate())) return 'fertile';
+    if (this.diasDePeriodo?.some(d => this.diaIgual(d, dia))) return 'periodo';
+    if (this.diaIgual(dia, new Date())) return 'hoy';
+  
+    return '';
+  }
+
+  diaIgual(a: Date | null | undefined, b: Date | null | undefined): boolean {
+    if (!a || !b) return false;
+
+    return a.getDate() === b.getDate() &&
+      a.getMonth() === b.getMonth() &&
+      a.getFullYear() === b.getFullYear();
+  }
+
 
 
   showLoginModal() {
@@ -368,10 +466,13 @@ export class MiperfilComponent {
 
     this.perfilService.ObtenerPeriodo(localStorage.getItem("Id") ?? '').subscribe({
       next: data => {
+        console.log("data",data)
         this.regular = data.esRegular;
         this.ultCiclo = data.ultimoCiclo;
         this.confirmado = data.Confirmado;
         this.diaAprox = data.diaAproximado;
+        this.generarClasesDias();
+
       }
     })
   }

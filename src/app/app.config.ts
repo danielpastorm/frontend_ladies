@@ -9,7 +9,7 @@ import Aura from '@primeng/themes/aura';
 import Lara from '@primeng/themes/lara'; // ✅ Tema rosa
 import Material from '@primeng/themes/material'
 import Nora from '@primeng/themes/nora'
-
+import { LadiesPreset } from './ladiespre/ladiespre.module';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -18,9 +18,9 @@ export const appConfig: ApplicationConfig = {
     provideAnimationsAsync(),
     providePrimeNG({
       theme: {
-          preset: Lara,
+          preset: LadiesPreset,
           options: {
-            darkModeSelector: 'dark' // Desactiva el modo oscuro
+            darkModeSelector: '.dark-mode' // Desactiva el modo oscuro
           }
           
       }

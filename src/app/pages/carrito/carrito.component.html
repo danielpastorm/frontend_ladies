@@ -1,12 +1,11 @@
-<div class="cart-container">
+<div *ngIf="cartItems && cartItems.length !== 0; else emptyCartTemplate" class="cart-container">
   <h2>Tu Carrito de Compras</h2>
   <!-- Botón de Checkout -->
   <div class="checkout-container">
     <div class="checkout-button">
-      <p-button label="Proceder al Pago" icon="pi pi-credit-card" (click)="pagar()"></p-button>
+      <p-button label="Proceder al Pago" [loading]="loading" icon="pi pi-credit-card" (click)="pagar()"></p-button>
     </div>
   </div>
-
 
   <!-- Tabla de productos -->
   <p-table [value]="cartItems" [paginator]="true" [rows]="5" responsiveLayout="scroll">
@@ -20,12 +19,12 @@
     </ng-template>
     <ng-template pTemplate="body" let-product>
       <tr>
-        <td>{{ product.name }} - {{ product.price | currency }}</td>
+        <td>{{ product.name }} - {{ product.price | currency:'MXN' }}</td>
         <td>
           <p-inputNumber [(ngModel)]="product.quantity" [min]="1"
-            (onChange)="updateQuantity(product, product.quantity)"></p-inputNumber>
+            (ngModelChange)="updateQuantity(product, product.quantity)"></p-inputNumber>
         </td>
-        <td>{{ product.price * product.quantity | currency }}</td>
+        <td>{{ product.price * product.quantity | currency:'MXN' }}</td>
         <td>
           <p-button icon="pi pi-trash" severity="danger" (click)="removeProduct(product)"></p-button>
         </td>
@@ -34,13 +33,16 @@
     <ng-template pTemplate="footer">
       <tr>
         <td colspan="2" class="total-label">Total:</td>
-        <td colspan="2" class="total-value">{{ getTotal() | currency }}</td>
+        <td colspan="2" class="total-value">{{ getTotal() | currency:'MXN':'MXN' }}</td>
       </tr>
     </ng-template>
   </p-table>
-
-
-
-
-
 </div>
+
+<ng-template #emptyCartTemplate>
+  <div class="empty-cart text-center p-4">
+    <h2>Tu carrito está vacío</h2>
+    <p>No tienes compras en el carrito. ¡Descubre nuestros productos y llena tu carrito!</p>
+    <p-button label="Ver productos" icon="pi pi-shopping-cart" (click)="navigateToProductos()"></p-button>
+  </div>
+</ng-template>

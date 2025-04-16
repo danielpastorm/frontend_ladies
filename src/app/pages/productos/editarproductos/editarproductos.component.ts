@@ -44,13 +44,7 @@ interface UploadEvent {
   selector: 'app-editarproductos',
   imports: [ButtonModule, RippleModule, ToastModule, TableModule, CommonModule, DrawerModule, FormsModule,
     InputGroupModule, InputGroupAddonModule, InputTextModule, InputNumberModule, FloatLabelModule, ToggleButtonModule,
-    FileUpload,
-    BadgeModule,
-    Badge,
-    ProgressBar,
-    DialogModule
-
-
+    FileUpload, BadgeModule, DialogModule
   ],
   templateUrl: './editarproductos.component.html',
   styleUrl: './editarproductos.component.css',

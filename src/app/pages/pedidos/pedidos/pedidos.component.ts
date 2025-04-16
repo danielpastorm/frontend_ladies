@@ -20,7 +20,7 @@ interface Customer{
 @Component({
   selector: 'app-pedidos',
   imports: [TableModule, CommonModule, InputTextModule, TagModule,
-  SelectModule, MultiSelectModule, ProgressBar, ButtonModule, IconFieldModule, InputIconModule],
+  SelectModule, MultiSelectModule, ButtonModule, IconFieldModule, InputIconModule],
   templateUrl: './pedidos.component.html',
   styleUrl: './pedidos.component.css'
 })

@@ -98,6 +98,12 @@ export class AppComponent {
         this.displayRegister = true;
 
     }
+    toggleDarkMode() {
+        const element = document.querySelector('html');
+        element?.classList.toggle('dark-mode');
+    }
+
+
 
 
 
@@ -264,6 +270,9 @@ export class AppComponent {
 
     buildMenu() {
         this.items = [
+            // {
+            //     icon: 'pi pi-moon', command: () => this.toggleDarkMode()
+            // },
             { label: 'Inicio', icon: 'pi pi-home', routerLink: ['/'] },
             { label: 'Productos', icon: 'pi pi-heart-fill', routerLink: ['/comprar-productos'] },
             { label: 'Kits', icon: 'pi pi-shopping-bag', routerLink: ['/Kits'] }
@@ -276,11 +285,12 @@ export class AppComponent {
                 items: [
                     { label: 'Mi Perfil', icon: 'pi pi-user', routerLink: ['/miperfil'] },
                     { label: 'Mis compras', icon: 'pi pi-server', routerLink: ['/compras'] },
-                    { label: 'Administrar suscripción', icon: 'pi pi-server', routerLink: ['/compras'] },
-                    { label: "Carrito", icon: "pi pi-shopping-cart", routerLink: ['/carrito'] }
-
+                    { label: 'Administrar suscripción', icon: 'pi pi-server', routerLink: ['/suscripcion'] }
                 ]
             });
+            this.items.push(
+                { label: "Carrito", icon: "pi pi-shopping-cart", routerLink: ['/carrito'] }
+            );
         } else {
             this.endItems = [
                 { label: 'Iniciar Sesión / Registrarse', icon: 'pi pi-user', routerLink: ['/miperfil'] }
@@ -317,6 +327,7 @@ export class AppComponent {
             });
         }
     }
+    
 
 
 }

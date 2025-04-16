@@ -28,8 +28,6 @@
                     class="w-full" />
             </div>
 
-            <p>Disponible: {{ kit.disponible }}</p>
-
         </p-card>
 
 
@@ -121,10 +119,10 @@
         </p-card>
     </div>
 
-    <div class="col-12 md:col-6">
+    <div class="col-12 md:col-12">
         <p-card header="Cargar imagenes" class="mb-4">
             <!-- Cargar Imagenes -->
-            <div class="col-12 md:col-6">
+            <div class="col-12 md:col-12">
                 <p-card header="Cargar Imagenes">
                     <div class="card">
                         <div class="card">
@@ -142,27 +140,7 @@
             </div>
         </p-card>
     </div>
-    <div class="col-12 md:col-6">
-        <p-card header="Imagenes cargadas" class="mb-4">
-            <!-- Cargar Imagenes -->
-            <div class="col-12 md:col-6">
-                <p-card header="Cargar Imagenes">
-                    <div class="card">
-                        <div class="card">
-                            <p-toast></p-toast>
-                            <p-fileupload name="file" [url]="'https://ladies-first.shop/Images/AgregarImagenesKit/-1'"
-                                (onUpload)="onUpload($event)" [auto]="true" [multiple]="false" accept="image/*"
-                                maxFileSize="3000000" mode="advanced">
-                                <ng-template #empty>
-                                    <div>Arrastra y suelta archivos para subirlos.</div>
-                                </ng-template>
-                            </p-fileupload>
-                        </div>
-                    </div>
-                </p-card>
-            </div>
-        </p-card>
-    </div>
+  
 
 
 

@@ -10,10 +10,11 @@ import { FloatLabel } from 'primeng/floatlabel';
 import { ButtonModule } from 'primeng/button';
 import { ProductService } from '../../services/product.service';
 import { AuthService } from '../../services/auth/auth.service';
+import { Router, RouterLink, RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-carrito',
-  imports: [ButtonModule, TableModule, CommonModule, InputNumberModule, FormsModule, FloatLabel],
+  imports: [ButtonModule, TableModule, CommonModule, InputNumberModule, FormsModule],
   templateUrl: './carrito.component.html',
   styleUrl: './carrito.component.css'
 })
@@ -23,16 +24,18 @@ export class CarritoComponent {
   userId = localStorage.getItem("Id")
   newProduct = { name: '', description: '', price: null, quantity: 1 };
 
-  
 
 
-  constructor(private messageService: MessageService, private cartService: ProductService, private auth: AuthService) { }
+
+  constructor(private messageService: MessageService, private cartService: ProductService, private auth: AuthService, private router: Router) { }
 
   ngOnInit(): void {
 
     this.loadCart();
 
   }
+
+  loading: boolean = false;
 
   // Cargar el carrito del usuario
   loadCart() {
@@ -79,56 +82,66 @@ export class CarritoComponent {
     this.newProduct = { name: '', description: '', price: null, quantity: 1 }; // Reiniciar formulario
   }
 
-  // pagar() {
-  //   console.log("pago");
-  //   const total = this.getTotal();
-  //   this.auth.pay(total).subscribe({
-  //     next: (response) => console.log("Pago exitoso:", response),
-  //     error: (error) => console.error("Error en el pago:", error)
-  //   });
-  // }
-
-
   pagar() {
+    this.loading = true;
     const total = this.getTotal();
-
-    // Armar el mensaje sin íconos que puedan romper la URI
-    let message = 'Hola, soy '+ localStorage.getItem("nombre")  + '! Me interesa comprar los siguientes productos:%0A';
-
-    this.cartItems.forEach(item => {
-      message += `- ${item.name} x${item.quantity} - $${(item.price * item.quantity).toFixed(2)}%0A`;
+    this.auth.pay(total).subscribe({
+      next: (response) => {
+        console.log("Pago exitoso:", response)
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error("Error en el pago:", error)
+        this.loading = false;
+      }
     });
-
-    message += `%0ATotal: $${total.toFixed(2)}`;
-    console.log(message);
-
-    const phoneNumber = '525613592002'; // Número de WhatsApp (sin + ni espacios)
-    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
-
-    // Enviar a WhatsApp
-    window.open(whatsappUrl, '_blank');
-
-    // Aquí puedes generar el JSON para guardar en la nueva tabla
-    const pedidoJson = {
-      clienteId: this.userId, // reemplaza por el ID real del usuario
-      fecha: new Date().toISOString(),
-      total: total,
-      productos: this.cartItems.map(item => ({
-        name: item.name,
-        quantity: item.quantity,
-        subtotal: item.price * item.quantity
-      }))
-    };
-
-    console.log(pedidoJson)
-    // Enviar al backend (si ya tienes un endpoint configurado)
-    this.cartService.guardarPedido(pedidoJson).subscribe({
-      next: res => console.log('Pedido guardado', res),
-      error: err => console.error('Error al guardar pedido', err)
-    });
-
-    this.cartService.clearCart(localStorage.getItem("Id") ?? '').subscribe();
   }
+
+  navigateToProductos() {
+    this.router.navigate(['/Kits']);
+  }
+
+
+  // pagar() {
+  //   const total = this.getTotal();
+
+  //   // Armar el mensaje sin íconos que puedan romper la URI
+  //   let message = 'Hola, soy '+ localStorage.getItem("nombre")  + '! Me interesa comprar los siguientes productos:%0A';
+
+  //   this.cartItems.forEach(item => {
+  //     message += `- ${item.name} x${item.quantity} - $${(item.price * item.quantity).toFixed(2)}%0A`;
+  //   });
+
+  //   message += `%0ATotal: $${total.toFixed(2)}`;
+  //   console.log(message);
+
+  //   const phoneNumber = '525613592002'; // Número de WhatsApp (sin + ni espacios)
+  //   const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
+
+  //   // Enviar a WhatsApp
+  //   window.open(whatsappUrl, '_blank');
+
+  //   // Aquí puedes generar el JSON para guardar en la nueva tabla
+  //   const pedidoJson = {
+  //     clienteId: this.userId, // reemplaza por el ID real del usuario
+  //     fecha: new Date().toISOString(),
+  //     total: total,
+  //     productos: this.cartItems.map(item => ({
+  //       name: item.name,
+  //       quantity: item.quantity,
+  //       subtotal: item.price * item.quantity
+  //     }))
+  //   };
+
+  //   console.log(pedidoJson)
+  //   // Enviar al backend (si ya tienes un endpoint configurado)
+  //   this.cartService.guardarPedido(pedidoJson).subscribe({
+  //     next: res => console.log('Pedido guardado', res),
+  //     error: err => console.error('Error al guardar pedido', err)
+  //   });
+
+  //   this.cartService.clearCart(localStorage.getItem("Id") ?? '').subscribe();
+  // }
 
 
 

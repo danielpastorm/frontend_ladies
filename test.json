@@ -1,0 +1,41 @@
+{
+    "id": 40,
+    "nombre": "Básico",
+    "descripcion": "Kit pensado para las mujeres que invierten en su salud",
+    "imagenes": "Captura de pantalla 2024-01-12 215138.png;Captura de pantalla 2024-01-13 173506.png",
+    "precio": 200,
+    "disponible": true,
+    "categoriasJson": "{\"categorias\":[{\"nombre\":\"Productos personales\",\"productos\":[{\"id\":51,\"cantidad\":2},{\"id\":52,\"cantidad\":2}],\"idProductoSeleccionado\":null,\"productoSeleccionado\":null,\"cantidadSeleccionada\":null},{\"nombre\":\"Dulces\",\"productos\":[{\"id\":51,\"cantidad\":2}],\"idProductoSeleccionado\":null},{\"nombre\":\"extras\",\"productos\":[]}],\"extras\":[55],\"precioFinal\":200}",
+    "imagenesArray": [
+        "Captura de pantalla 2024-01-12 215138.png",
+        "Captura de pantalla 2024-01-13 173506.png"
+    ],
+    "categorias": [
+        {
+            "nombre": "Productos personales",
+            "productos": [
+                {
+                    "id": 51,
+                    "cantidad": 2
+                },
+                {
+                    "id": 52,
+                    "cantidad": 2
+                }
+            ],
+            "idProductoSeleccionado": null,
+            "productoSeleccionado": null,
+            "cantidadSeleccionada": null
+        },
+        {
+            "nombre": "Dulces",
+            "productos": [
+                {
+                    "id": 51,
+                    "cantidad": 2
+                }
+            ],
+            "idProductoSeleccionado": null
+        }
+    ]
+}

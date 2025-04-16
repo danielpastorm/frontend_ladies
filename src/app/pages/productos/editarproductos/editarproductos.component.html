@@ -12,7 +12,7 @@
       <div class="product-info">
         <h3>{{ product.nombre }}</h3>
         <p>{{ product.descripcion }}</p>
-        <p><strong>Precio:</strong> {{ product.precio | currency }}</p>
+        <p><strong>Precio:</strong> {{ product.precio | currency:'MXN' }}</p>
         <p><strong>Disponible:</strong> {{ product.disponible ? 'Sí' : 'No' }}</p>
         <p-button label="Editar" icon="pi pi-pencil" (click)="selectProduct(product)" class="edit-button" />
       </div>
@@ -47,8 +47,7 @@
 
     <div class="field">
       <div class="card flex justify-center">
-        Disponible
-        <p-togglebutton [(ngModel)]="selectedProduct.disponible" onIcon="pi pi-check" offIcon="pi pi-times"
+        <p-togglebutton [(ngModel)]="selectedProduct.disponible" onLabel="Disponible" offLabel="No disponible" offIcon="pi pi-times"
           class="w-full sm:w-40" />
       </div>
     </div>

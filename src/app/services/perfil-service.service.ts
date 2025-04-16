@@ -10,7 +10,8 @@ import { FechaPeriodo } from '../Data/perfil.types';
 export class PerfilServiceService {
 
   constructor(private http: HttpClient) { }
-  private isProd = false;
+
+  private isProd = true;
   private apiUrl = this.isProd ? "/User" : 'https://localhost:7027/User'
 
 

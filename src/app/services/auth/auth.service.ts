@@ -70,11 +70,11 @@ export class AuthService {
   public public_role: string = "";
 
 
-  
+
   // https://localhost:7027
   private local = 'https://localhost:7027/Auth'
 
-  isprod: boolean = false;
+  isprod: boolean = true;
   private apiUrl = this.isprod ? 'https://Ladies-First.shop/Auth' : this.local;
 
   constructor(private http: HttpClient) {
@@ -92,7 +92,7 @@ export class AuthService {
   getProfile(): Observable<UserProfile> {
     const token = localStorage.getItem('token');
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
-  
+
     return this.getRole().pipe(
       tap((role: string) => {
         localStorage.setItem('role', role);
@@ -103,24 +103,25 @@ export class AuthService {
     );
   }
 
-  
+
 
   getRole(): Observable<string> {
-    
+
     const token = localStorage.getItem('token');
-    console.log('token: ' , token);
+    console.log('token: ', token);
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
 
-    return this.http.get<string>(`${this.apiUrl}/claims`, { headers, responseType: 'text' as 'json'  });
+    return this.http.get<string>(`${this.apiUrl}/claims`, { headers, responseType: 'text' as 'json' });
   }
 
 
   // Método que ejecuta el pago y devuelve un Observable
   pay(totalAmount: number): Observable<any> {
+    console.log(window.location.origin)
     return new Observable(observer => {
-      this.http.post('/CheckOut/create-checkout-session', {
+      this.http.post('https://ladies-first.shop/CheckOut/create-checkout-session', {
         amount: totalAmount,
-        frontendBaseUrl: window.location.origin
+        FrontendBaseUrl: window.location.origin
       }).subscribe(
         async (response: any) => {
           try {
@@ -143,12 +144,12 @@ export class AuthService {
 
   setToken(token: string) {
     localStorage.setItem('token', token);
-    this.authSubject.next(true); 
+    this.authSubject.next(true);
   }
-  
+
   logout() {
     localStorage.clear();
-    this.authSubject.next(false); 
+    this.authSubject.next(false);
     this.roleSubject.next(null);
 
   }
@@ -156,8 +157,8 @@ export class AuthService {
   private hasToken(): boolean {
     return !!localStorage.getItem('token');
   }
-  
 
 
-  
+
+
 }

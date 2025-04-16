@@ -6,23 +6,48 @@ import { Categorias, Kit } from '../Data/kit.types';
 import { KitDetail } from '../Data/kit.types';
 import { Kit_get } from '../Data/kit.types';
 
+
+export interface DynamicSubscriptionRequest {
+  CustomerId: string;
+  // Monto en centavos (por ejemplo, 1500 = $15.00)
+  Amount: number;
+  // Opcional: si tienes un ProductId, lo envías; si no, se crea uno por defecto
+  ProductId?: string;
+  Name: string;
+}
+
+// La estructura de la respuesta dependerá de lo que retorne tu API.
+export interface SubscriptionResponse {
+  sessionId: string;
+  id: string;
+  customer: string;
+  items: any[];
+  // Puedes agregar otros campos según tu modelo de Stripe
+}
+
+
+
 @Injectable({
   providedIn: 'root'
 })
 
 
 
+
+
+
 export class ProductService {
 
-  
-  
-  private Isprod = false;
-  
-  private url_kits = this.Isprod ? '/Kits' : 'https://localhost:7027/Kits';
-  private apiUrl = this.Isprod? '/CheckOut' : 'https://localhost:7027/CheckOut';
-  private home = this.Isprod ? '/' : 'https://localhost:7027/';
 
-  constructor(private http: HttpClient) {}
+
+  private Isprod = true;
+
+  private url_kits = this.Isprod ? '/Kits' : 'https://localhost:7027/Kits';
+  private apiUrl = this.Isprod ? '/CheckOut' : 'https://localhost:7027/CheckOut';
+  private home = this.Isprod ? '/' : 'https://localhost:7027/';
+  private baseUrl = this.Isprod ? '/CheckOut' : 'https://localhost:7027/CheckOut'
+
+  constructor(private http: HttpClient) { }
 
   getProductsMini(): Promise<Producto[]> {
     return this.http.get<Producto[]>(`${this.home}productos/listar`).toPromise()
@@ -34,14 +59,14 @@ export class ProductService {
   }
 
   getProducts(): Observable<Producto[]> {
-    return this.http.get<Producto[]>(`${this.home}productos/listar`);   
+    return this.http.get<Producto[]>(`${this.home}productos/listar`);
   }
-  
+
 
   getProductDetails(id: number): Observable<Producto> {
     // Supongamos que tu endpoint está definido como: GET /Productos/Detalles?id=5
     return this.http.get<Producto>(`${this.home}productos/Detalles/${id}`);
-  } 
+  }
 
   updateProduct(product: Producto): Observable<string> {
     return this.http.post<string>(
@@ -51,26 +76,26 @@ export class ProductService {
     );
   }
 
-  
+
   updateKit(product: Kit_get): Observable<string> {
     return this.http.put<string>(
       `${this.url_kits}/EditKit/${product.id}`, product);
-  } 
-  
-  
-  
+  }
+
+
+
   deleteImage(id: number, image: string, p0: boolean): Observable<string> {
     // Extraer solo el nombre del archivo de la URL, en caso de que venga con ruta completa
     const imageName = image.split('/').pop() ?? "";
-    
+
     // Agregar el parámetro isKit a la URL
     const url = `${this.home}Images/EliminarImagen?id=${id}&img=${encodeURIComponent(imageName)}&isKit=${p0}`;
-    
+
     return this.http.post<string>(url, null, { responseType: 'text' as 'json' });
   }
-  
-  
-  
+
+
+
 
   createProduct(product: Producto): Observable<string> {
     return this.http.post<string>(
@@ -80,7 +105,7 @@ export class ProductService {
     );
   }
 
-  
+
 
   createKit(kit: Kit): Observable<string> {
     return this.http.post<string>(
@@ -94,7 +119,7 @@ export class ProductService {
     return this.http.get<KitDetail[]>(`${this.home}Kits/ListarKits`);
   }
 
-  getKitById(id: number): Observable<Kit_get[]>{
+  getKitById(id: number): Observable<Kit_get[]> {
     return this.http.get<Kit_get[]>(`${this.home}Kits/ObtenerKit/${id}`);
   }
 
@@ -131,15 +156,15 @@ export class ProductService {
       headers: { 'Content-Type': 'application/json' }
     });
   }
-  
-  
+
+
 
   obtenerTodosLosPedidos() {
     return this.http.get<any[]>(`${this.apiUrl}/todos`);
   }
 
 
-  getCategorias(){
+  getCategorias() {
     return this.http.get<any[]>(`${this.url_kits}/getcategorias`);
   }
 
@@ -147,11 +172,25 @@ export class ProductService {
     return this.http.post(`${this.url_kits}/agregarcategoria`, categoria);
   }
 
-  
-  
-  
-  
+  createDynamicSubscription(request: DynamicSubscriptionRequest): Observable<SubscriptionResponse> {
+    return this.http.post<SubscriptionResponse>(
+      `${this.apiUrl}/create-dynamic-subscription`, request
+    );
+  }
 
 
-  
+  listSubscriptions(customerId: string): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/list-subs?customerId=${customerId}`);
+  }
+
+  cancelSubscription(subscriptionId: string): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/cancel-subscription`, { SubscriptionId: subscriptionId });
+  }
+
+
+
+
+
+
+
 }

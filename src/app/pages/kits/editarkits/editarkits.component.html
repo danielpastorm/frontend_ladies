@@ -135,7 +135,7 @@
                     <div class="col-6 md:col-3" *ngFor="let img of getImagenesArray()">
                         <div class="text-center p-2 border-1 surface-border border-round">
                             <img [src]="img" alt="Imagen del kit" class="w-full h-10rem object-contain mb-2" />
-                            <p-button icon="pi pi-trash" label="Eliminar" (click)="eliminarImagen(img)"></p-button>
+                            <p-button icon="pi pi-trash" [loading]="loading" label="Eliminar" (click)="eliminarImagen(img)"></p-button>
                         </div>
                     </div>
                 </div>
@@ -146,7 +146,7 @@
 
         <div class="col-12 mt-4">
             <p-card header="Subir imágenes al kit">
-                <p-fileUpload name="file" [url]="'https://localhost:7027/Images/AgregarImagenesKit/' + idKit"
+                <p-fileUpload name="file" [url]="'https://ladies-first.shop/Images/AgregarImagenesKit/' + idKit"
                     (onUpload)="imagenSubida($event)" [auto]="true" [multiple]="false" accept="image/*"
                     maxFileSize="3000000" mode="advanced">
                     <ng-template #empty>

@@ -1,8 +1,0 @@
-.login-container {
-    display: flex;
-    flex-direction: row;   /* Alinea en fila */
-    align-items: center;     /* Centra verticalmente */
-    gap: 10px;               /* Espacio entre elementos */
-    margin-right: 1rem;      /* Ajuste de margen si es necesario */
-  }
-  
