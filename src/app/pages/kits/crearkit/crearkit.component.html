@@ -10,16 +10,35 @@
 
 
 
-            <p-floatLabel>
+            <p-floatLabel variant="on">
                 <input pInputText type="text" [(ngModel)]="kit.nombre" name="nombre" id="nombre" required
                     class="w-full" />
                 <label for="nombre">Nombre</label>
             </p-floatLabel>
 
-            <p-floatLabel class="mt-4">
+            <p-floatLabel variant="on" class="mt-4">
                 <input pInputText type="text" [(ngModel)]="kit.descripcion" name="descripcion" id="descripcion" required
                     class="w-full" />
                 <label for="descripcion">Descripción</label>
+            </p-floatLabel>
+
+            <p-floatLabel variant="on" class="mt-4">
+                <p-inputnumber [(ngModel)]="kit.precio" [showButtons]="true" inputId="stacked" mode="currency"
+                    currency="MXN" />
+
+                <label>Precio</label>
+            </p-floatLabel>
+
+            <p-floatLabel variant="on" class="mt-4">
+                <p-inputnumber (onInput)="calcularDescuento()" [max]="100" inputId="integeronly" suffix="%" [(ngModel)]="kit.descuento" />
+                <label>Descuento</label>
+            </p-floatLabel>
+
+            <p-floatLabel variant="on" class="mt-4">
+                <p-inputnumber [(ngModel)]="kit.preciocondescuento" [disabled]="true" inputId="stacked" mode="currency"
+                    currency="MXN" />
+
+                <label>Precio Con Descuento</label>
             </p-floatLabel>
 
             <div class="mt-4">
@@ -27,6 +46,8 @@
                 <p-toggleButton [(ngModel)]="kit.disponible" name="disponible" onLabel="Sí" offLabel="No"
                     class="w-full" />
             </div>
+
+            
 
         </p-card>
 
@@ -38,7 +59,7 @@
         <p-card header="Categorías del Kit" class="mb-4">
 
             <div class="flex justify-content-center align-items-center gap-2">
-                <p-floatlabel>
+                <p-floatlabel variant="on">
                     <input pInputText id="on_label" autocomplete="off" [(ngModel)]="categoria" name="categoria" />
                     <label for="on_label">Categoría</label>
                 </p-floatlabel>
@@ -123,11 +144,11 @@
         <p-card header="Cargar imagenes" class="mb-4">
             <!-- Cargar Imagenes -->
             <div class="col-12 md:col-12">
-                <p-card header="Cargar Imagenes">
+                <p-card>
                     <div class="card">
                         <div class="card">
                             <p-toast></p-toast>
-                            <p-fileupload name="file" [url]="'https://ladies-first.shop/Images/AgregarImagenesKit/-1'"
+                            <p-fileupload name="file" [url]="'https://localhost:7027/Images/AgregarImagenesKit/-1'"
                                 (onUpload)="onUpload($event)" [auto]="true" [multiple]="false" accept="image/*"
                                 maxFileSize="3000000" mode="advanced">
                                 <ng-template #empty>
@@ -140,7 +161,7 @@
             </div>
         </p-card>
     </div>
-  
+
 
 
 

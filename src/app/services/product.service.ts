@@ -5,6 +5,7 @@ import { Producto } from '../Data/producto.types';
 import { Categorias, Kit } from '../Data/kit.types';
 import { KitDetail } from '../Data/kit.types';
 import { Kit_get } from '../Data/kit.types';
+import { environment } from '../../environments/environment';
 
 
 export interface DynamicSubscriptionRequest {
@@ -39,18 +40,13 @@ export interface SubscriptionResponse {
 export class ProductService {
 
 
+  private apiUrl: string = environment.apiUrl;
 
-  private Isprod = true;
-
-  private url_kits = this.Isprod ? '/Kits' : 'https://localhost:7027/Kits';
-  private apiUrl = this.Isprod ? '/CheckOut' : 'https://localhost:7027/CheckOut';
-  private home = this.Isprod ? '/' : 'https://localhost:7027/';
-  private baseUrl = this.Isprod ? '/CheckOut' : 'https://localhost:7027/CheckOut'
-
+  private Isprod = false;
   constructor(private http: HttpClient) { }
 
   getProductsMini(): Promise<Producto[]> {
-    return this.http.get<Producto[]>(`${this.home}productos/listar`).toPromise()
+    return this.http.get<Producto[]>(`${this.apiUrl}productos/listar`).toPromise()
       .then(data => data || [])
       .catch(error => {
         console.error('Error al obtener productos:', error);
@@ -59,18 +55,17 @@ export class ProductService {
   }
 
   getProducts(): Observable<Producto[]> {
-    return this.http.get<Producto[]>(`${this.home}productos/listar`);
+    return this.http.get<Producto[]>(`${this.apiUrl}productos/listar`);
   }
 
 
   getProductDetails(id: number): Observable<Producto> {
-    // Supongamos que tu endpoint está definido como: GET /Productos/Detalles?id=5
-    return this.http.get<Producto>(`${this.home}productos/Detalles/${id}`);
+    return this.http.get<Producto>(`${this.apiUrl}productos/Detalles/${id}`);
   }
 
   updateProduct(product: Producto): Observable<string> {
     return this.http.post<string>(
-      `${this.home}productos/EditarProducto/${product.id}`,
+      `${this.apiUrl}productos/EditarProducto/${product.id}`,
       product,
       { responseType: 'text' as 'json' } // Esto indica que se espera una respuesta en formato texto
     );
@@ -79,7 +74,7 @@ export class ProductService {
 
   updateKit(product: Kit_get): Observable<string> {
     return this.http.put<string>(
-      `${this.url_kits}/EditKit/${product.id}`, product);
+      `${this.apiUrl}Kits/EditKit/${product.id}`, product);
   }
 
 
@@ -89,7 +84,7 @@ export class ProductService {
     const imageName = image.split('/').pop() ?? "";
 
     // Agregar el parámetro isKit a la URL
-    const url = `${this.home}Images/EliminarImagen?id=${id}&img=${encodeURIComponent(imageName)}&isKit=${p0}`;
+    const url = `${this.apiUrl}Images/EliminarImagen?id=${id}&img=${encodeURIComponent(imageName)}&isKit=${p0}`;
 
     return this.http.post<string>(url, null, { responseType: 'text' as 'json' });
   }
@@ -99,7 +94,7 @@ export class ProductService {
 
   createProduct(product: Producto): Observable<string> {
     return this.http.post<string>(
-      `${this.home}productos/CrearProducto`,
+      `${this.apiUrl}productos/CrearProducto`,
       product,
       { responseType: 'text' as 'json' }
     );
@@ -109,33 +104,42 @@ export class ProductService {
 
   createKit(kit: Kit): Observable<string> {
     return this.http.post<string>(
-      `${this.home}Kits/CrearKit`,
+      `${this.apiUrl}Kits/CrearKit`,
       kit,
       { responseType: 'text' as 'json' }
     );
   }
 
   getKits(): Observable<KitDetail[]> {
-    return this.http.get<KitDetail[]>(`${this.home}Kits/ListarKits`);
+    return this.http.get<KitDetail[]>(`${this.apiUrl}Kits/ListarKits`);
   }
 
   getKitById(id: number): Observable<Kit_get[]> {
-    return this.http.get<Kit_get[]>(`${this.home}Kits/ObtenerKit/${id}`);
+    return this.http.get<Kit_get[]>(`${this.apiUrl}Kits/ObtenerKit/${id}`);
   }
 
 
 
 
   addToCart(item: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/add`, item);
+    return this.http.post(`${this.apiUrl}CheckOut/add`, item);
+  }
+
+  RegistrarCompraSuscripcion(item: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}CheckOut/registrarCompraSuscripcion`, item);
   }
 
   getCart(userId: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/get/${userId}`);
+    return this.http.get(`${this.apiUrl}CheckOut/get/${userId}`);
   }
 
   clearCart(userId: string): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/clear/${userId}`);
+    return this.http.delete(`${this.apiUrl}CheckOut/clear/${userId}`);
+  }
+
+  
+  cancelarPedido(userId: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}CheckOut/cancelarPedido/${userId}`);
   }
 
 
@@ -144,15 +148,15 @@ export class ProductService {
   }
 
   guardarPedido(pedido: any) {
-    return this.http.post(`${this.apiUrl}/guardar`, pedido);
+    return this.http.post(`${this.apiUrl}CheckOut/guardar`, pedido);
   }
 
   obtenerPedidosPorCliente(clienteId: string) {
-    return this.http.get<any[]>(`${this.apiUrl}/usuario/${clienteId}`);
+    return this.http.get<any[]>(`${this.apiUrl}CheckOut/usuario/${clienteId}`);
   }
 
   cambiarEstadoPedido(id: string, data: { NuevoEstado: string; Guia: string }) {
-    return this.http.put(`${this.apiUrl}/${id}/estado`, data, {
+    return this.http.put(`${this.apiUrl}CheckOut/${id}/estado`, data, {
       headers: { 'Content-Type': 'application/json' }
     });
   }
@@ -160,32 +164,34 @@ export class ProductService {
 
 
   obtenerTodosLosPedidos() {
-    return this.http.get<any[]>(`${this.apiUrl}/todos`);
+    return this.http.get<any[]>(`${this.apiUrl}CheckOut/todos`);
   }
 
 
   getCategorias() {
-    return this.http.get<any[]>(`${this.url_kits}/getcategorias`);
+    return this.http.get<any[]>(`${this.apiUrl}Kits/getcategorias`);
   }
 
   newCategoria(categoria: Categorias) {
-    return this.http.post(`${this.url_kits}/agregarcategoria`, categoria);
+    return this.http.post(`${this.apiUrl}Kits/agregarcategoria`, categoria);
   }
 
   createDynamicSubscription(request: DynamicSubscriptionRequest): Observable<SubscriptionResponse> {
     return this.http.post<SubscriptionResponse>(
-      `${this.apiUrl}/create-dynamic-subscription`, request
+      `${this.apiUrl}CheckOut/create-dynamic-subscription`, request
     );
   }
 
 
   listSubscriptions(customerId: string): Observable<any> {
-    return this.http.get<any>(`${this.baseUrl}/list-subs?customerId=${customerId}`);
+    return this.http.get<any>(`${this.apiUrl}CheckOut/list-subs?customerId=${customerId}`);
   }
 
   cancelSubscription(subscriptionId: string): Observable<any> {
-    return this.http.post<any>(`${this.baseUrl}/cancel-subscription`, { SubscriptionId: subscriptionId });
+    return this.http.post<any>(`${this.apiUrl}CheckOut/cancel-subscription`, { SubscriptionId: subscriptionId });
   }
+
+  //retornar las compras del usuario
 
 
 

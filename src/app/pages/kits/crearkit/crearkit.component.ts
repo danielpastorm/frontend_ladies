@@ -29,6 +29,7 @@ import { Dialog } from 'primeng/dialog';
 
 import { Router } from '@angular/router';
 import { Categorias } from '../../../Data/kit.types';
+import { environment } from '../../../../environments/environment';
 
 export class ProductoEnKitDTO {
   constructor(
@@ -90,7 +91,11 @@ interface CategoriaEnKit {
   templateUrl: './crearkit.component.html',
   styleUrl: './crearkit.component.css'
 })
+
 export class CrearkitComponent {
+
+  apiUrl: string = environment.apiUrl;
+
   checked: boolean = false;
   //archivos
   uploadedFiles: any[] = [];
@@ -118,7 +123,6 @@ export class CrearkitComponent {
   productosAgregados: any[] = [];
 
   isProd: boolean = false;
-  home: string = "";
 
   // Ejemplo de categorías
   categories = [
@@ -143,7 +147,7 @@ export class CrearkitComponent {
   ) { }
 
   ngOnInit(): void {
-    this.home = this.isProd ? 'https://ladies-first.shop/' : '/';
+
     // Definimos el formulario reactivo
     this.productForm = this.fb.group({
       name: ['', Validators.required],
@@ -261,7 +265,10 @@ export class CrearkitComponent {
     imagenes: '',
     disponible: false,
     precio: 0,
-    categoriasJson: '' // Aquí meterás JSON.stringify(this.kitJson)
+    categoriasJson: '',
+    descuento: 0,
+    preciocondescuento: 0
+
   };
 
 
@@ -452,18 +459,16 @@ export class CrearkitComponent {
         // Toma la primera imagen
         const primeraImagen = imagenesArray[0].trim();
         // Puedes codificar la URL si es necesario con encodeURI
-        return `https://ladies-first.shop/uploads/${id}/${encodeURI(primeraImagen)}`;
+        return `${this.apiUrl}uploads/${id}/${encodeURI(primeraImagen)}`;
       }
     }
     // Retorna una imagen por defecto si no se encuentra
-    return `https://ladies-first.shop/uploads/default-placeholder.png`;
+    return `${this.apiUrl}/uploads/default-placeholder.png`;
   }
-  
+
 
 
   guardarKit() {
-
-
     this.kit.categoriasJson = JSON.stringify(this.kitJson);
     console.log(this.kit)
     this.productService.createKit(this.kit).subscribe({
@@ -485,26 +490,11 @@ export class CrearkitComponent {
     })
   }
 
+  calcularDescuento() {
+    if (this.kit.descuento > 100) this.kit.descuento = 100;
+    if (this.kit.descuento < 0) this.kit.descuento = 0;
 
+    this.kit.preciocondescuento = this.kit.precio - (this.kit.precio * (this.kit.descuento / 100) )
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  }
 }

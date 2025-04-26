@@ -97,7 +97,7 @@ export class MiperfilComponent {
   guardarCiclo() {
     this.ciclo.Confirmado = this.confirmado ?? false;
     this.ciclo.IdUsuario = localStorage.getItem("Id") ?? "";
-    this.ciclo.diaAproximado = this.diaAprox ?? 0;
+    this.ciclo.diaAproximado = this.diaAprox != 0 && this.diaAprox != undefined ? this.diaAprox : this.ultCiclo!.getDate();
     this.ciclo.esRegular = this.regular ?? false;
     this.ciclo.ultimoCiclo = this.ultCiclo ?? new Date;
 
@@ -112,6 +112,7 @@ export class MiperfilComponent {
       alert('Ingresa el día aproximado en que te baja.');
       return;
     }
+
 
     this.perfilService.RegistrarPeriodo(this.ciclo).subscribe({
       next: () => {
@@ -200,8 +201,8 @@ export class MiperfilComponent {
 
 
 
-
     this.cargarPerfil();
+
 
 
 
@@ -222,13 +223,10 @@ export class MiperfilComponent {
     this.authService.getRole().subscribe({
       next: (data: string) => {
         this.role = data;
-        console.log(this.role)
 
       },
       error: err => {
-        console.error('Error al cargar el perfil:', err);
         this.role = "this.error";
-        console.log(this.role)
 
       }
     });
@@ -237,7 +235,6 @@ export class MiperfilComponent {
   }
 
   getClaseDia(dia: Date): string {
-    console.log(dia)
     return ''
     let fechaOvulacion: Date | null = null;
 
@@ -272,10 +269,10 @@ export class MiperfilComponent {
       this.clasesDias[key] = this.calcularClaseDia(dia);
     }
   }
-  
+
   calcularClaseDia(dia: Date): string {
     let fechaOvulacion: Date | null = null;
-  
+
     // if (this.diaAprox && this.ultCiclo) {
     //   const cicloDate = new Date(this.ultCiclo);
     //   fechaOvulacion = new Date(cicloDate);
@@ -283,16 +280,14 @@ export class MiperfilComponent {
     // }
 
     const diaUtCiclo = this.diaAprox ?? 0
-    if(this.diaAprox == dia.getDate() ) return 'ovulacion'
-    console.log("dia ult ciclo: ", this.diaAprox)
-    console.log("dia actual: ", dia.getDate())
-    let dias_ = [1,2,3]
-  
+    if (this.diaAprox == dia.getDate()) return 'periodo'
+   
+
     if (fechaOvulacion && this.diaIgual(dia, fechaOvulacion)) return 'ovulacion';
-    if (dias_.some(d => d == dia.getDate())) return 'fertile';
+    //if (dias_.some(d => d == dia.getDate())) return 'fertile';
     if (this.diasDePeriodo?.some(d => this.diaIgual(d, dia))) return 'periodo';
     if (this.diaIgual(dia, new Date())) return 'hoy';
-  
+
     return '';
   }
 
@@ -348,11 +343,12 @@ export class MiperfilComponent {
       },
       error => {
         console.error('Error al iniciar sesión', error);
+        console.log(error.error.message)
         this.isLoggingOut = false;
         this.messageService.add({
           severity: 'warn',
           summary: 'Error al iniciar sesión!',
-          detail: 'Intenta nuevamente'
+          detail: error.error.message
         });
       }
     );
@@ -466,7 +462,7 @@ export class MiperfilComponent {
 
     this.perfilService.ObtenerPeriodo(localStorage.getItem("Id") ?? '').subscribe({
       next: data => {
-        console.log("data",data)
+        console.log("data", data)
         this.regular = data.esRegular;
         this.ultCiclo = data.ultimoCiclo;
         this.confirmado = data.Confirmado;

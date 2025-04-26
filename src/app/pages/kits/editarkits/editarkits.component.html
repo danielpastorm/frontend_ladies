@@ -56,6 +56,15 @@
                 </p-floatLabel>
             </div>
 
+            <div class="col-12 md:col-6">
+                <p-floatLabel  variant="on">
+                    <p-inputnumber [max]="100" inputId="integeronly" suffix="%" formControlName="descuento" />
+                    <label>Descuento</label>
+                </p-floatLabel>
+            </div>
+
+        
+
             <div class="col-12">
                 <label for="disponible">¿Disponible?</label>
                 <p-toggleButton formControlName="disponible" onLabel="Sí" offLabel="No"
@@ -146,7 +155,7 @@
 
         <div class="col-12 mt-4">
             <p-card header="Subir imágenes al kit">
-                <p-fileUpload name="file" [url]="'https://ladies-first.shop/Images/AgregarImagenesKit/' + idKit"
+                <p-fileUpload name="file" [url]="apiUrl + 'Images/AgregarImagenesKit/' + idKit"
                     (onUpload)="imagenSubida($event)" [auto]="true" [multiple]="false" accept="image/*"
                     maxFileSize="3000000" mode="advanced">
                     <ng-template #empty>

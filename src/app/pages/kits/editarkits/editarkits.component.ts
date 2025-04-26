@@ -42,6 +42,7 @@ import { Dropdown, DropdownModule } from 'primeng/dropdown';
 import { FloatLabel } from 'primeng/floatlabel';
 import { AnyCatcher } from 'rxjs/internal/AnyCatcher';
 import { ConfirmationService } from 'primeng/api';
+import { environment } from '../../../../environments/environment';
 interface UploadEvent {
   originalEvent: Event;
   files: File[];
@@ -60,7 +61,7 @@ interface UploadEvent {
   styleUrl: './editarkits.component.css'
 })
 export class EditarkitsComponent {
-
+  apiUrl:string = environment.apiUrl;
   kits!: any;
   cargando: boolean = false;
   abrirModal: boolean = false;
@@ -115,6 +116,8 @@ export class EditarkitsComponent {
       imagenes: [''],
       precio: [0, [Validators.required, Validators.min(0)]],
       disponible: [false],
+      descuento: [0],
+      precioConDescuento: [0]
     });
 
 
@@ -131,6 +134,8 @@ export class EditarkitsComponent {
       imagenes: kit.imagenes,
       precio: kit.precio,
       disponible: kit.disponible,
+      descuento: kit.descuento,
+      precioConDescuento: kit.precioConDescuento
     });
 
     this.kitJson = JSON.parse(kit.categoriasJson || '{"categorias":[],"extras":[],"precioFinal":null}');
@@ -147,6 +152,9 @@ export class EditarkitsComponent {
       const nuevoPrecio = this.miFormulario.value.precio;
       const nuevasCategorias = this.miFormulario.value.categoriasJson;
       const nuevoDisponible = this.miFormulario.value.disponible;
+      const descuento = this.miFormulario.value.descuento;
+
+    
 
       // Actualizamos directamente el kit en memoria
       this.kitEditando.nombre = nuevoNombre;
@@ -154,6 +162,16 @@ export class EditarkitsComponent {
       this.kitEditando.precio = nuevoPrecio;
       this.kitEditando.categoriasJson = JSON.stringify(this.kitJson);
       this.kitEditando.disponible = nuevoDisponible;
+      if(descuento != 0){
+        this.kitEditando.descuento = descuento;
+        this.kitEditando.precioConDescuento = nuevoPrecio - (nuevoPrecio * (descuento / 100));
+      }
+      else{
+        this.kitEditando.descuento = 0;
+        this.kitEditando.preciocondescuento = 0;
+      }
+
+      console.log(this.kitEditando.descuento)
 
       // Aquí puedes mandar al backend si lo deseas con productService.updateKit()
       this.productService.updateKit(this.kitEditando).subscribe({
@@ -342,6 +360,13 @@ export class EditarkitsComponent {
     });
   }
 
+  calcularDescuento() {
+    if (this.kitEditando.descuento > 100) this.kitEditando.descuento = 100;
+    if (this.kitEditando.descuento < 0) this.kitEditando.descuento = 0;
+
+    this.kitEditando.preciocondescuento = this.kitEditando.precio - (this.kitEditando.precio * (this.kitEditando.descuento / 100) )
+
+  }
 
 
 

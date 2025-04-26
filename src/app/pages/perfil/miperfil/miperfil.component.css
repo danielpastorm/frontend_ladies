@@ -83,4 +83,8 @@
   .periodo { background-color: #ffd6d6; color: #b30000; }
   .ovulacion { background-color: #ffe1b3; color: #cc6600; }
   .hoy { border: 2px solid #ff69b4; }
+  .leyenda span {
+    font-size: 0.9rem;
+    color: #555;
+  }
   

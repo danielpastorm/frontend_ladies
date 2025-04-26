@@ -50,6 +50,8 @@ interface UploadEvent {
   styleUrl: './editarproductos.component.css',
 })
 export class EditarproductosComponent {
+  isProd: boolean = false;
+  url: string = this.isProd ? "https://ladies-first.shop/" : "https://localhost:7027/"
   loading: boolean = false;
   deletingImageIndex: number = -1;
 
@@ -144,40 +146,54 @@ export class EditarproductosComponent {
 
 
 
-  deleteImage(index: number) {
-    this.deletingImageIndex = index;
-    if (!this.selectedProduct || !this.selectedProduct.imagenesArray) {
-      // Manejar el caso de que no exista el producto o el array de imágenes
-      console.error('No hay producto seleccionado o imágenes disponibles.');
+  deleteImage(index: number): void {
+    const producto = this.selectedProduct;
+
+    if (!producto || !producto.imagenesArray || !producto.imagenesArray[index]) {
+      console.error('No hay producto seleccionado o imagen válida en el índice:', index);
       return;
     }
-    // Obtén la imagen a eliminar
-    const imageToDelete = this.selectedProduct.imagenesArray[index];
-    // Llama al endpoint para eliminar la imagen
 
+    const imageToDelete = producto.imagenesArray[index];
+    this.deletingImageIndex = index;
 
-    this.productService.deleteImage(this.selectedProduct.id, imageToDelete, false).subscribe({
-      next: (res) => {
+    this.productService.deleteImage(producto.id, imageToDelete, false).subscribe({
+      next: () => {
         this.messageService.add({
           severity: 'success',
           summary: 'Imagen eliminada',
           detail: 'La imagen ha sido eliminada correctamente.'
         });
-        // Elimina la imagen del array local
-        this.selectedProduct!.imagenesArray!.splice(index, 1);
+
+        // Eliminar imagen de imagenesArray
+        const nuevasImagenes = producto.imagenesArray!.filter((_, i) => i !== index);
+        this.selectedProduct!.imagenesArray = nuevasImagenes;
+
+        // Reconstruir el string imagenes
+        this.selectedProduct!.imagenes = nuevasImagenes
+          .map(img => img.split('/').pop())
+          .join(';');
+
+        this.deletingImageIndex = -1;
+
+        // 👉 Actualiza también la lista general
+        this.recargarImagenes();
       },
       error: (err) => {
         console.error('Error al eliminar imagen:', err);
-        this.deletingImageIndex = -1;
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
           detail: 'No se pudo eliminar la imagen'
         });
+        this.deletingImageIndex = -1;
       }
     });
   }
- 
+
+
+
+
   onSelect(event: any): void {
     // Guarda los archivos seleccionados
     this.selectedFiles = event.files;
@@ -205,6 +221,8 @@ export class EditarproductosComponent {
     }
     // Limpiar la variable de archivos seleccionados
     this.selectedFiles = [];
+
+    this.recargarImagenes();
   }
 
   onError(event: any): void {
@@ -219,6 +237,33 @@ export class EditarproductosComponent {
   onClear(event: any): void {
     console.log('FileUpload se ha limpiado:', event);
   }
+
+  recargarImagenes() {
+    const producto = this.selectedProduct;
+    if (!producto) return;
+  
+    this.productService.getProductDetails(producto.id).subscribe({
+      next: (detalle) => {
+        // Actualiza el producto en el modal
+        this.selectedProduct!.imagenesArray = detalle.imagenes
+          ? detalle.imagenes.split(';').map(img =>
+              `uploads/${producto.id}/${img.trim()}`
+            )
+          : [];
+  
+        // También actualiza en la lista general
+        const index = this.products.findIndex(p => p.id === producto.id);
+        if (index !== -1) {
+          this.products[index].imagenesArray = this.selectedProduct!.imagenesArray;
+          this.products[index].imagenes = detalle.imagenes;
+        }
+      }
+    });
+  }
+  
+  
+  
+
 
 
 }

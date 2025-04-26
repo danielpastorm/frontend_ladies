@@ -3,6 +3,13 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { tap, switchMap } from 'rxjs/operators';
 import { loadStripe } from '@stripe/stripe-js';
+import { environment } from '../../../environments/environment';
+import { jwtDecode } from "/Users/danielpastor/Documents/LadiesFirst/frontend_ladies/node_modules/jwt-decode/build/esm/index"
+
+export interface JwtPayload {
+  exp: number; // tiempo en segundos
+  [key: string]: any;
+}
 
 export interface LoginResponse {
   token: string;
@@ -68,22 +75,53 @@ export class AuthService {
   public isAuthenticated$ = this.authSubject.asObservable();
 
   public public_role: string = "";
-
-
-
-  // https://localhost:7027
-  private local = 'https://localhost:7027/Auth'
-
-  isprod: boolean = true;
-  private apiUrl = this.isprod ? 'https://Ladies-First.shop/Auth' : this.local;
+  apiUrl: string = environment.apiUrl + "Auth";
 
   constructor(private http: HttpClient) {
+    const token = localStorage.getItem('token');
+    const role = localStorage.getItem('role');
+  
+    if (token) {
+      this.authSubject.next(true);
+    }
+  
+    if (role) {
+      this.roleSubject.next(role);
+    }
 
+  }
+
+  isTokenExpired(): boolean {
+    const token = localStorage.getItem('token');
+    if (!token) return true;
+
+    try {
+      const decoded = jwtDecode<JwtPayload>(token);
+      const currentTime = Date.now() / 1000;
+      return decoded.exp < currentTime;
+    } catch (error) {
+      return true; // Token inválido
+    }
   }
 
   login(credentials: LoginDTO): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.apiUrl}/login`, credentials);
+    return this.http.post<LoginResponse>(`${this.apiUrl}/login`, credentials).pipe(
+      tap(async (response: LoginResponse) => {
+        localStorage.setItem('token', response.token);
+        this.authSubject.next(true);
+  
+        // Llama a getRole después del login
+        const headers = new HttpHeaders().set('Authorization', `Bearer ${response.token}`);
+        const role = await this.http.get<string>(`${this.apiUrl}/claims`, { headers, responseType: 'text' as 'json' }).toPromise();
+  
+        if (role) {
+          localStorage.setItem('role', role);
+          this.roleSubject.next(role);
+        }
+      })
+    );
   }
+  
 
   register(user: Register): Observable<RegisterResponse> {
     return this.http.post<RegisterResponse>(`${this.apiUrl}/register`, user);
@@ -95,9 +133,10 @@ export class AuthService {
 
     return this.getRole().pipe(
       tap((role: string) => {
-        localStorage.setItem('role', role);
-        this.roleSubject.next(role); // <--- aquí notificas el nuevo valor
-        console.log('Rol guardado en localStorage:', role);
+        const limpio = role.replace(/"/g, '');
+        localStorage.setItem('role', limpio);
+        this.roleSubject.next(limpio); // <--- aquí notificas el nuevo valor
+        console.log('Rol guardado en localStorage:', limpio);
       }),
       switchMap(() => this.http.get<UserProfile>(`${this.apiUrl}/me`, { headers }))
     );
@@ -119,9 +158,10 @@ export class AuthService {
   pay(totalAmount: number): Observable<any> {
     console.log(window.location.origin)
     return new Observable(observer => {
-      this.http.post('https://ladies-first.shop/CheckOut/create-checkout-session', {
+      this.http.post('https://localhost:7027/CheckOut/create-checkout-session', {
         amount: totalAmount,
-        FrontendBaseUrl: window.location.origin
+        FrontendBaseUrl: window.location.origin,
+        CustomerId: "cus_S4Ri5XycZW4nfj"
       }).subscribe(
         async (response: any) => {
           try {

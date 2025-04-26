@@ -25,7 +25,12 @@ export class InicioComponent {
     alert('Botón de emergencia presionado');
   }
 
-  goToKits() {
-    this.router.navigate(['Kits']);
+  goToKits(emergencia: boolean = false) {
+    if (emergencia) {
+      this.router.navigate(['/comprar-productos'], { queryParams: { emergencia: true } });
+    } else {
+      this.router.navigate(['/comprar-productos']);
+    }
   }
+
 }

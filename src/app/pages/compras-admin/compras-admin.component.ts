@@ -13,110 +13,116 @@ import { ConfirmationService } from 'primeng/api';
 import { CalendarModule } from 'primeng/calendar';
 import { ViewChild } from '@angular/core';
 import { Table } from 'primeng/table';
-
-
+import { InputTextModule } from 'primeng/inputtext';
+import { IconField } from 'primeng/iconfield';
+import { InputIcon } from 'primeng/inputicon';
+import { Tag } from 'primeng/tag';
+import { ToastModule } from 'primeng/toast';
+import { environment } from '../../../environments/environment';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-compras-admin',
-  imports: [CommonModule, DialogModule, ButtonModule, TableModule, Message, DropdownModule, FormsModule, ConfirmDialogModule, CalendarModule],
+  imports: [CommonModule, DialogModule, ButtonModule, TableModule, Message, DropdownModule, FormsModule, ConfirmDialogModule, CalendarModule,
+    TableModule, InputTextModule, Tag, IconField, InputIcon, ToastModule
+  ],
   providers: [ConfirmationService],
   templateUrl: './compras-admin.component.html',
   styleUrl: './compras-admin.component.css'
 })
 export class ComprasAdminComponent {
-  @ViewChild('dt') dt!: Table;
-
-  userId = "123"
+  userId = localStorage.getItem("Id") ?? "";
   compras: any[] = [];
-  detalleVisible = false;
-  compraSeleccionada: any = null;
-  estadosDisponibles: string[] = ['Pendiente', 'Enviado', 'Entregado', 'Cancelado'];
+  mostrarModal = false;
+  products: any[] = [];
+  apiUrl = environment.apiUrl;
+  defaultImage = this.apiUrl + "uploads/resources/final-3.png";
 
-  constructor(private productService: ProductService, private messageService: MessageService, private confirmationService: ConfirmationService) { }
+
+  constructor(
+    private productService: ProductService,
+    private route: ActivatedRoute,
+    private messageService: MessageService
+  ) { }
 
   ngOnInit() {
-    this.productService.obtenerTodosLosPedidos().subscribe({
-      next: data => {
-        this.compras = data.map(p => ({
-          ...p,
-          fecha: new Date(p.fecha).toLocaleDateString('es-MX'), // ✅ se transforma la fecha
-          productos: JSON.parse(p.productos).map((item: any) => ({
-            nombre: item.Name,
-            cantidad: item.Quantity,
-            precio: item.Subtotal
-          }))
+
+
+    this.productService.obtenerPedidosPorCliente(this.userId).subscribe({
+      next: (data) => {
+        this.products = data.map(pedido => ({
+          ...pedido,
+          productos: typeof pedido.productosJson === 'string'
+            ? JSON.parse(pedido.productosJson)
+            : pedido.productosJson
         }));
+
+        console.log('Products:', this.products);
       },
-      error: err => console.error('Error al cargar pedidos del admin', err)
+      error: (err) => console.error('Error al cargar compras', err)
     });
-  }
-  
 
-
-  verDetalles(compra: any) {
-    this.compraSeleccionada = compra;
-    console.log(this.compraSeleccionada)
-    this.detalleVisible = true;
-  }
-
-  getStatusSeverity(estado: string): string {
-    switch (estado.toLowerCase()) {
-      case 'pendiente': return 'warn';
-      case 'enviado': return 'info';
-      case 'entregado': return 'success';
-      case 'cancelado': return 'error';
-      default: return 'secondary';
+    const mostrar = this.route.snapshot.queryParamMap.get("session_id");
+    if (mostrar) {
+      this.mostrarModal = true;
     }
   }
 
-  actualizarEstado() {
-    if (!this.compraSeleccionada) return;
-    
-    const dto = {
-      NuevoEstado: String =  this.compraSeleccionada.estado,
-      Guia: String =  this.compraSeleccionada.guia || ''
-    };
-    console.log(dto)
-  
-    this.productService.cambiarEstadoPedido(this.compraSeleccionada?.id, dto)
-      .subscribe({
-        next: () => {
-          this.messageService.add({ severity: 'success', summary: 'Estado actualizado' });
-          this.detalleVisible = false;
-          // Opcional: volver a cargar la tabla si lo necesitas
-          this.ngOnInit();
-        },
-        error: err => {
-          console.error('Error al actualizar estado', err);
-          this.messageService.add({ severity: 'error', summary: 'Error al actualizar' });
-        }
-      });
+
+
+
+
+
+  expandedRows = {};
+
+
+  expandAll() {
+    this.expandedRows = this.products.reduce((acc, product) => {
+      acc[product.id] = true;
+      return acc;
+    }, {});
   }
 
-  filtrarPorFecha(fecha: Date) {
-    const fechaFormateada = fecha.toLocaleDateString('es-MX'); // "21/03/2025"
-    this.dt.filter(fechaFormateada, 'fecha', 'equals');
-  }
-  
-  
 
-  confirmarCambioEstado() {
-    this.confirmationService.confirm({
-      message: '¿Estás seguro de cambiar el estado del pedido?',
-      header: 'Confirmar',
-      icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Sí',
-      rejectLabel: 'No',
-      accept: () => {
-        this.actualizarEstado();
-      }
-    });
-  }
-  
 
-  limpiarFiltros() {
-    this.dt.clear(); // 🔄 Limpia todos los filtros aplicados
+  collapseAll() {
+    this.expandedRows = {};
   }
-  
+
+  getSeverity(status: string) {
+    switch (status) {
+      case 'INSTOCK':
+        return 'success';
+      case 'Premium':
+        return 'warn';
+      case 'OUTOFSTOCK':
+        return 'danger';
+      default:
+        return 'danger'
+    }
+  }
+
+  getStatusSeverity(status: string) {
+    switch (status) {
+      case 'PENDING':
+        return 'warn';
+      case 'DELIVERED':
+        return 'success';
+      case 'CANCELLED':
+        return 'danger';
+      default:
+        return 'danger';
+    }
+
+  }
+
+  // onRowExpand(event: TableRowExpandEvent) {
+  //   this.messageService.add({ severity: 'info', summary: 'Product Expanded', detail: event.data.name, life: 3000 });
+  // }
+
+  // onRowCollapse(event: TableRowCollapseEvent) {
+  //   this.messageService.add({ severity: 'success', summary: 'Product Collapsed', detail: event.data.name, life: 3000 });
+  // }
+
 
 }

@@ -74,3 +74,38 @@
   align-items: center;
   z-index: 9999; /* para que quede por encima de todo */
 }
+
+.precio-container {
+  position: relative;
+  display: inline-block;
+  padding: 0.5rem;
+  background: #fdf8f8;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.badge-descuento {
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  background-color: #e53935;
+  color: white;
+  font-weight: bold;
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  border-radius: 4px;
+  box-shadow: 0 0 5px rgba(0,0,0,0.2);
+}
+
+.precio-original {
+  text-decoration: line-through;
+  color: #999;
+  font-size: 1rem;
+  margin-right: 0.5rem;
+}
+
+.precio-con-descuento {
+  color: #2e7d32;
+  font-size: 1.5rem;
+  font-weight: bold;
+}

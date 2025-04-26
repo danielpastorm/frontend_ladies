@@ -139,6 +139,28 @@
 
             <div class="col-12 md:col-6">
               <div class="mb-4 pt-2">
+                <!-- Leyenda del calendario -->
+                <div class="leyenda flex gap-4 items-center mb-3">
+                  <div class="flex items-center gap-2">
+                    <div class="w-4 h-4 rounded-full periodo"></div>
+                    <span>Día del periodo</span>
+                  </div>
+
+                  <!-- <div class="flex items-center gap-2">
+                    <div class="w-4 h-4 rounded-full periodo"></div>
+                    <span>Día fértil</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <div class="w-4 h-4 rounded-full bg-yellow-400"></div>
+                    <span>Día de ovulación</span>
+                  </div> -->
+
+                  <div class="flex items-center gap-2">
+                    <div class="w-4 h-4 rounded-full hoy"></div>
+                    <span>Hoy</span>
+                  </div>
+                </div>
+
                 <p-card header="Mi periodo">
                   <p>Tu dia del ciclo en el mes es: {{diaAprox}}</p>
 
@@ -181,7 +203,8 @@
                         <p>
                           Según tus datos, estimamos tu próximo periodo para el:
                           <strong>{{ calcularProximoPeriodo(ultCiclo) | date:
-                            'fullDate' }}</strong>
+                            'fullDate' }}, te estaremos enviando tus kits o productos antes del dia en que generalmente
+                            te baja de cada mes</strong>
                         </p>
                         <label for="confirmado">¿Es correcta esta predicción?</label>
                         <p-select inputId="confirmado" [(ngModel)]="confirmado" [options]="confirmacionOptions"
@@ -191,11 +214,11 @@
                       </div>
 
                       <!-- Si es irregular: mostrar campo de día -->
-                      <div class="col-12" *ngIf="regular === false">
+                      <!-- <div class="col-12" *ngIf="regular === false">
                         <label for="diaAprox">¿Qué día del mes generalmente te baja?</label>
                         <input pInputText type="number" id="diaAprox" [(ngModel)]="diaAprox" min="1" max="31"
                           placeholder="Ej. 23" [ngModelOptions]="{ standalone: true }" />
-                      </div>
+                      </div> -->
 
 
 

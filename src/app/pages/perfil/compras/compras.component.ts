@@ -1,69 +1,117 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Dialog, DialogModule } from 'primeng/dialog';
+import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
-import { TableModule } from 'primeng/table';
+import { TableModule, TableRowCollapseEvent, TableRowExpandEvent } from 'primeng/table';
 import { ProductService } from '../../../services/product.service';
 import { Message } from 'primeng/message';
-
-interface Producto {
-  nombre: string;
-  cantidad: number;
-  precio: number;
-}
-
-interface Compra {
-  fecha: string;
-  total: number;
-  estado: string;
-  productos: Producto[];
-}
+import { ActivatedRoute } from '@angular/router';
+import { Tag } from 'primeng/tag';
+import { Rating } from 'primeng/rating';
+import { ToastModule } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-compras',
-  imports: [CommonModule, DialogModule, ButtonModule, TableModule, Message],
-  providers:[],
+  standalone: true,
+  imports: [CommonModule, DialogModule, ButtonModule, TableModule, Tag, ToastModule],
+  providers: [MessageService],
   templateUrl: './compras.component.html',
   styleUrl: './compras.component.css'
 })
-export class ComprasComponent {
-
-  userId = localStorage.getItem("Id") ?? ""
+export class ComprasComponent implements OnInit {
+  userId = localStorage.getItem("Id") ?? "";
   compras: any[] = [];
-  detalleVisible = false;
-  compraSeleccionada: any = null;
+  mostrarModal = false;
+  products: any[] = [];
+  apiUrl = environment.apiUrl;
+  defaultImage = this.apiUrl + "uploads/resources/final-3.png";
 
-  constructor(private productService: ProductService) { }
+
+  constructor(
+    private productService: ProductService,
+    private route: ActivatedRoute,
+    private messageService: MessageService
+  ) { }
 
   ngOnInit() {
-    this.productService.obtenerPedidosPorCliente(this.userId).subscribe({
-      next: data => {
-        // Mapear todos los pedidos, deserializando los productos
-        this.compras = data.map(p => ({
-          ...p,
-          productos: JSON.parse(p.productos)
-        }));
-        console.log("compras" ,this.compras)
-      },
-      error: err => console.error('Error al cargar compras', err)
-    });
-  }
-  
 
-  verDetalles(compra: any) {
-    this.compraSeleccionada = compra;
-    console.log(this.compraSeleccionada)
-    this.detalleVisible = true;
-  }
-  
-  getStatusSeverity(estado: string): string {
-    switch (estado.toLowerCase()) {
-      case 'pendiente': return 'warn';
-      case 'enviado': return 'info';
-      case 'entregado': return 'success';
-      case 'cancelado': return 'error';
-      default: return 'secondary';
+
+    this.productService.obtenerPedidosPorCliente(this.userId).subscribe({
+      next: (data) => {
+        this.products = data.map(pedido => ({
+          ...pedido,
+          productos: typeof pedido.productosJson === 'string'
+            ? JSON.parse(pedido.productosJson)
+            : pedido.productosJson
+        }));
+
+        console.log('Products:', this.products);
+      },
+      error: (err) => console.error('Error al cargar compras', err)
+    });
+
+    const mostrar = this.route.snapshot.queryParamMap.get("session_id");
+    if (mostrar) {
+      this.mostrarModal = true;
     }
   }
-  
+
+
+
+
+
+
+  expandedRows = {};
+
+
+  expandAll() {
+    this.expandedRows = this.products.reduce((acc, product) => {
+      acc[product.id] = true;
+      return acc;
+    }, {});
+  }
+
+
+
+  collapseAll() {
+    this.expandedRows = {};
+  }
+
+  getSeverity(status: string) {
+    switch (status) {
+      case 'INSTOCK':
+        return 'success';
+      case 'Premium':
+        return 'warn';
+      case 'OUTOFSTOCK':
+        return 'danger';
+      default:
+        return 'danger'
+    }
+  }
+
+  getStatusSeverity(status: string) {
+    switch (status) {
+      case 'PENDING':
+        return 'warn';
+      case 'DELIVERED':
+        return 'success';
+      case 'CANCELLED':
+        return 'danger';
+      default:
+        return 'danger';
+    }
+
+  }
+
+  // onRowExpand(event: TableRowExpandEvent) {
+  //   this.messageService.add({ severity: 'info', summary: 'Product Expanded', detail: event.data.name, life: 3000 });
+  // }
+
+  // onRowCollapse(event: TableRowCollapseEvent) {
+  //   this.messageService.add({ severity: 'success', summary: 'Product Collapsed', detail: event.data.name, life: 3000 });
+  // }
+
 }

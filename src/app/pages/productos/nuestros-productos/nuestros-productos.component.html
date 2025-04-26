@@ -10,7 +10,7 @@
   <div class="flex">
     <p-card [style]="{ width: '20rem', overflow: 'hidden' }" class="text-center">
       <ng-template #header>
-        <img src="https://ladies-first.shop/uploads/resources/final-3.png" alt="Personaliza tu kit"
+        <img [src]="logoUrl" alt="Personaliza tu kit"
           class="w-full object-contain p-3" />
       </ng-template>
 
@@ -33,6 +33,28 @@
   <div *ngFor="let kit of kits" class="flex">
     <p-card [header]="kit.nombre" [subheader]="kit.descripcion" class="text-center"
       [style]="{ width: '20rem', overflow: 'hidden' }">
+
+      <div class="precio-container">
+        <!-- Badge de descuento -->
+        <span *ngIf="kit.descuento > 0" class="badge-descuento">
+          -{{ kit.descuento }}%
+        </span>
+      
+        <!-- Precio original tachado -->
+        <span *ngIf="kit.descuento > 0" class="precio-original">
+          {{ kit.precio | currency:'MXN' }}
+        </span>
+
+        <span *ngIf="kit.precioConDescuento == 0" style="font-size: large;">
+          Personalizalo desde: {{ kit.precio | currency:'MXN' }}
+        </span>
+      
+        <!-- Precio con descuento -->
+        <span *ngIf="kit.precioConDescuento != 0" class="precio-con-descuento">
+          {{ kit.precioConDescuento | currency:'MXN' }}
+        </span>
+      </div>
+      
 
       <!-- Carrusel de imágenes -->
       <p-galleria *ngIf="kit.imagenesArray?.length > 0" [value]="kit.imagenesArray" [showItemNavigators]="true"

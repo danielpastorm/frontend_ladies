@@ -9,13 +9,18 @@ import { MessageService } from 'primeng/api';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { GalleriaModule } from 'primeng/galleria';
 
+import { Message } from 'primeng/message';
+import { ActivatedRoute } from '@angular/router';
+import { HttpParams } from '@angular/common/http';
+
 @Component({
   selector: 'app-comprar-productos',
-  imports: [CardModule, ButtonModule, CommonModule, ProgressSpinnerModule, GalleriaModule],
+  imports: [CardModule, ButtonModule, CommonModule, ProgressSpinnerModule, GalleriaModule, Message],
   providers: [],
   templateUrl: './comprar-productos.component.html',
   styleUrl: './comprar-productos.component.css'
 })
+
 export class ComprarProductosComponent {
   products: any[] = []
   cargando: boolean = false;
@@ -30,7 +35,18 @@ export class ComprarProductosComponent {
     }
   ];
 
-  constructor(private productoService: ProductService, private auth: AuthService, private cartService: ProductService, private messageService: MessageService) { }
+  isProd: boolean = false;
+  url: string = this.isProd ? "https://ladies-first.shop/" : "https://localhost:7027/"
+
+
+  emergencia: boolean = false;
+
+  constructor(private productoService: ProductService, private auth: AuthService, private cartService: ProductService, private messageService: MessageService, private route: ActivatedRoute) {
+    this.route.queryParams.subscribe(params => {
+      this.emergencia = params['emergencia'] === 'true' || false;
+
+    })
+  }
 
   ngOnInit() {
     this.cargando = true;
@@ -40,7 +56,7 @@ export class ComprarProductosComponent {
   fetchProducts() {
     this.productoService.getProductsMini()
       .then((data: Producto[]) => {
-        this.products = data;
+        this.products = data.filter(q => q.disponible === true);
         this.cargando = false;
       })
       .catch(error => {
@@ -95,9 +111,9 @@ export class ComprarProductosComponent {
 
   getImagesArray(imagenes: string, productId: number) {
     if (!imagenes) return [];
-  
+
     return imagenes.split(';').map(imageName => {
-      const imagePath = `https://ladies-first.shop/uploads/${productId}/${imageName.trim()}`;
+      const imagePath = `${this.url}uploads/${productId}/${imageName.trim()}`;
       return {
         itemImageSrc: imagePath,
         thumbnailImageSrc: imagePath,
@@ -106,7 +122,12 @@ export class ComprarProductosComponent {
       };
     });
   }
-  
+
+
+  cambiarAEstandar(){
+    this.emergencia = false;
+  }
+
 
 
 }

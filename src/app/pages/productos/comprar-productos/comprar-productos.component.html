@@ -2,6 +2,16 @@
   <p-progressSpinner></p-progressSpinner>
 </div>
 
+<p-message severity="warn" *ngIf="emergencia">
+  Estás realizando una&nbsp;<strong>compra de emergencia</strong>. Tus productos serán enviados con prioridad en un plazo de&nbsp;<strong>2 a 3 días hábiles&nbsp;</strong> y se aplicará un cargo adicional de&nbsp;<strong>$100 MXN&nbsp;</strong> por el servicio express.&nbsp;&nbsp;
+  <a (click)="cambiarAEstandar()" style="color: #007bff; cursor: pointer; text-decoration: underline;">
+    Cambiar a envío normal
+  </a>
+</p-message>
+
+
+
+
 <!-- Contenedor flex para centrar -->
 <div class="flex flex-wrap justify-content-center gap-4 p-4">
   <div *ngFor="let product of products" class="flex">

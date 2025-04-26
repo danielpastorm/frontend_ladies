@@ -1,6 +1,12 @@
-<div class="success-container">
-    <h2>¡Pago exitoso!</h2>
-    <p>Gracias por tu compra. Tu número de sesión es: <strong>{{ sessionId }}</strong></p>
-    <a routerLink="/">Volver a la tienda</a>
+<div class="container grid-container">
+  <div *ngFor="let item of menuItems; let i = index">
+    <div class="grid-item card" [ngClass]="item.colorClass">
+      <!-- <div class="icon">{{ item.icon }}</div> -->
+      <i class="material-symbols-outlined icon">
+        {{ item.icon }}
+      </i>
+      <div class="description" [ngStyle]="{ 'width': item.key=='amex' ? '70px' : null }">
+        {{ item.description }}</div>
+    </div>
   </div>
-  
+</div>

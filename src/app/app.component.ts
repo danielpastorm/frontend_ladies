@@ -19,6 +19,9 @@ import { Dialog } from 'primeng/dialog';
 import { DatePicker, DatePickerModule } from 'primeng/datepicker';
 import { Fluid, FluidModule } from 'primeng/fluid';
 import { MenuModule } from 'primeng/menu';
+
+import { HTTP_INTERCEPTORS } from '@angular/common/http';
+
 @Component({
     selector: 'app-root',
     imports: [Toast, ButtonModule, RouterOutlet, CommonModule, Dialog, DatePickerModule, FluidModule,
@@ -327,7 +330,7 @@ export class AppComponent {
             });
         }
     }
-    
+
 
 
 }

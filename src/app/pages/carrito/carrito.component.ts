@@ -11,10 +11,13 @@ import { ButtonModule } from 'primeng/button';
 import { ProductService } from '../../services/product.service';
 import { AuthService } from '../../services/auth/auth.service';
 import { Router, RouterLink, RouterOutlet } from '@angular/router';
+import { DialogModule } from 'primeng/dialog';
+import { ActivatedRoute } from '@angular/router';
+import { tick } from '@angular/core/testing';
 
 @Component({
   selector: 'app-carrito',
-  imports: [ButtonModule, TableModule, CommonModule, InputNumberModule, FormsModule],
+  imports: [ButtonModule, TableModule, CommonModule, InputNumberModule, FormsModule, DialogModule],
   templateUrl: './carrito.component.html',
   styleUrl: './carrito.component.css'
 })
@@ -23,16 +26,23 @@ export class CarritoComponent {
   cartItems: any[] = [];
   userId = localStorage.getItem("Id")
   newProduct = { name: '', description: '', price: null, quantity: 1 };
+  mostrarModal: boolean = false;
 
 
 
 
-  constructor(private messageService: MessageService, private cartService: ProductService, private auth: AuthService, private router: Router) { }
+  constructor(private messageService: MessageService, private cartService: ProductService, private auth: AuthService, private router: Router, private route: ActivatedRoute) { }
 
   ngOnInit(): void {
 
     this.loadCart();
 
+    const cancelado = this.route.snapshot.queryParamMap.get("cancelado");
+    console.log(cancelado)
+    if (cancelado) {
+      this.mostrarModal = true;
+      this.cancelarPedido();
+    }
   }
 
   loading: boolean = false;
@@ -82,9 +92,13 @@ export class CarritoComponent {
     this.newProduct = { name: '', description: '', price: null, quantity: 1 }; // Reiniciar formulario
   }
 
-  pagar() {
+  async pagar() {
     this.loading = true;
     const total = this.getTotal();
+
+    await this.guardarPedido();
+
+
     this.auth.pay(total).subscribe({
       next: (response) => {
         console.log("Pago exitoso:", response)
@@ -99,6 +113,45 @@ export class CarritoComponent {
 
   navigateToProductos() {
     this.router.navigate(['/Kits']);
+  }
+
+  cerrarModal() {
+    this.mostrarModal = false;
+  }
+
+  guardarPedido() {
+    const total = this.getTotal();
+    // Aquí puedes generar el JSON para guardar en la nueva tabla
+    const pedidoJson = {
+      clienteId: this.userId, // reemplaza por el ID real del usuario
+      fecha: new Date().toISOString(),
+      total: total,
+      productos: this.cartItems.map(item => ({
+        name: item.name,
+        quantity: item.quantity,
+        subtotal: item.price * item.quantity
+      }))
+    };
+
+    console.log(pedidoJson)
+    // Enviar al backend (si ya tienes un endpoint configurado)
+    this.cartService.guardarPedido(pedidoJson).subscribe({
+      next: res => console.log('Pedido guardado', res),
+      error: err => console.error('Error al guardar pedido', err)
+    });
+
+    if (this.mostrarModal == true) {   //significa que fue cancelado 
+      //si fue cancelado entonces se borra el ultimo pedido que guardo el usuario en la base de datos
+      console.log("entro a true");
+    }else{
+      //si fue exitoso se vacia su carrito
+      this.cartService.clearCart(localStorage.getItem("Id") ?? '').subscribe();
+    }
+
+  }
+
+  cancelarPedido(){
+    this.cartService.cancelarPedido(localStorage.getItem("Id") ?? '').subscribe();
   }
 
 

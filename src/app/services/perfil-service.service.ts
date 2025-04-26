@@ -11,7 +11,7 @@ export class PerfilServiceService {
 
   constructor(private http: HttpClient) { }
 
-  private isProd = true;
+  private isProd = false;
   private apiUrl = this.isProd ? "/User" : 'https://localhost:7027/User'
 
 

@@ -3,7 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { DataView } from 'primeng/dataview';
 import { ButtonModule } from 'primeng/button';
 import { Tag } from 'primeng/tag';
-import { CommonModule } from '@angular/common';
+import { CommonModule, JsonPipe } from '@angular/common';
 import { signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { DataViewModule } from 'primeng/dataview';
@@ -42,6 +42,8 @@ import { AuthService } from '../../../services/auth/auth.service';
 import { AvatarModule } from 'primeng/avatar';
 import { OverlayBadgeModule } from 'primeng/overlaybadge';
 
+import { environment } from '../../../../environments/environment';
+import { UndoIcon } from 'primeng/icons';
 
 @Component({
   selector: 'app-nuestros-productos',
@@ -58,6 +60,9 @@ import { OverlayBadgeModule } from 'primeng/overlaybadge';
 
 })
 export class NuestrosProductosComponent implements OnInit {
+  apiUrl: string = environment.apiUrl;
+  logoUrl: string = this.apiUrl + "uploads/resources/logo.png"
+
   selectedProduct!: Producto;
 
   products: any[] = [];
@@ -151,7 +156,7 @@ export class NuestrosProductosComponent implements OnInit {
   seleccionarKit(kit: any) {
 
     this.kitSeleccionado = JSON.parse(JSON.stringify(kit)); // copia profunda
-    console.log(this.kitSeleccionado)
+    console.log("seleccionar kit", this.kitSeleccionado)
     this.productosExtras = [];
     this.mostrarModal = true;
   }
@@ -196,20 +201,20 @@ export class NuestrosProductosComponent implements OnInit {
       // Elimina 1 elemento en la posición "index"
       this.productosExtras.splice(index, 1);
       console.log("productosExtras tras eliminar:", this.productosExtras);
-  
+
       // Actualiza el arreglo de extras en kit_personalizado,
       // asignando para cada extra la cantidad (por ejemplo, 1 o la que hayas registrado en extrasCantidad)
       this.kit_personalizado.extras = this.productosExtras.map(id => ({
         id: id,
         cantidad: this.extrasCantidad[id] || 1  // Asegúrate de que extrasCantidad tenga la cantidad deseada
       }));
-  
+
       // Recalcular el precio final usando la función que hayas definido
       this.kit_personalizado.precioFinal = this.calcularTotalExtras(this.kit_personalizado.extras);
       console.log("Kit personalizado actualizado:", this.kit_personalizado);
     }
   }
-  
+
 
   calcularTotalExtras(extras: { id: number, cantidad: number }[]): number {
     let total = 0;
@@ -437,6 +442,55 @@ export class NuestrosProductosComponent implements OnInit {
   subscribe(nombre: string, precio: number) {
     // Mostrar indicador de carga (opcional)
     this.loading = true;
+    let kit = undefined;
+
+    //aqui debes guardar el pedido
+    if (this.kit_personalizado != undefined) {
+      console.log("kit personalizado", this.kit_personalizado)
+      kit = this.kit_personalizado;
+
+    } else {
+      console.log("kit normal", this.kitSeleccionado)
+      kit = this.kitSeleccionado;
+    }
+
+    const suscripcion = {
+      idUsuario: localStorage.getItem("Id"),
+      idUsuarioStripe: "undefined",
+      esSuscripcion: true,
+      activa: true,
+      pagado: false,
+      nombreKit: kit.nombre,
+      productosJson: kit.categoriasJson,
+      enviada: false,
+      fechaEnvio: null,
+      frecuenciaEnvio: "mensual",
+      total: kit.precio,
+      fechaCreacion: new Date().toISOString(),
+      cancelada: false,
+      motivoCancelacion: null,
+      notasAdmin: ""
+    };
+    console.log("objeto para back", suscripcion)
+
+    this.productService.RegistrarCompraSuscripcion(suscripcion).subscribe({
+      next: data => {
+        console.log("Compra/suscripción registrada correctamente:", data);
+
+      },
+      error: error => {
+        if (error.status === 400) {
+          console.error("Error de validación (BadRequest):", error.error);
+          // Aquí podrías mostrar un mensaje al usuario con error.error.msg u otra propiedad
+        } else {
+          console.error("Otro error:", error);
+        }
+      },
+      complete: () => {
+        console.log("Petición completada");
+      }
+    })
+
 
     const request: DynamicSubscriptionRequest = {
       CustomerId: 'cus_S4Ri5XycZW4nfj', // Asegúrate de usar el CustomerId correcto

@@ -4,7 +4,7 @@
   <div class="product-grid">
     <div *ngFor="let product of products" class="product-card">
       <div class="product-image">
-        <img *ngIf="getFirstImage(product)" [src]="'https://ladies-first.shop/' + getFirstImage(product)"
+        <img *ngIf="getFirstImage(product)" [src]="url + getFirstImage(product)"
           alt="Imagen del producto" />
 
 
@@ -24,39 +24,48 @@
   [contentStyle]="{'overflow-y': 'auto'}" appendTo="body">
 
   <div *ngIf="selectedProduct" class="p-fluid">
-    <div class="field">
-      <p-floatlabel>
-        <input pInputText id="nombre" [(ngModel)]="selectedProduct.nombre" />
-        <label for="nombre">Nombre</label>
-      </p-floatlabel>
-    </div>
-
-    <div class="field">
-      <p-floatlabel>
-        <input pInputText id="descripcion" [(ngModel)]="selectedProduct.descripcion" />
-        <label for="descripcion">Descripción</label>
-      </p-floatlabel>
-    </div>
-
-    <div class="field">
-      <p-inputgroup>
-        <p-inputgroup-addon>$</p-inputgroup-addon>
-        <p-inputnumber [(ngModel)]="selectedProduct.precio" placeholder="Precio" [useGrouping]="false" />
-      </p-inputgroup>
-    </div>
-
-    <div class="field">
-      <div class="card flex justify-center">
-        <p-togglebutton [(ngModel)]="selectedProduct.disponible" onLabel="Disponible" offLabel="No disponible" offIcon="pi pi-times"
-          class="w-full sm:w-40" />
+    <div class="grid mt-2">
+      <div class="col-fixed">
+        <p-floatlabel variant="on">
+          <input pInputText id="nombre" [(ngModel)]="selectedProduct.nombre" />
+          <label for="nombre">Nombre</label>
+        </p-floatlabel>
       </div>
+
+      <div class="col-fixed">
+        <p-floatlabel variant="on">
+          <input pInputText id="descripcion" [(ngModel)]="selectedProduct.descripcion" />
+          <label for="descripcion">Descripción</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="col-fixed">
+        <p-floatlabel variant="on">
+          <p-inputgroup>
+            <p-inputgroup-addon>$</p-inputgroup-addon>
+            <p-inputnumber [(ngModel)]="selectedProduct.precio" placeholder="Precio" [useGrouping]="false" />
+          </p-inputgroup>
+          <label for="precio">Precio</label>
+
+        </p-floatlabel>
+
+      </div>
+
+      <div class="col-fixed">
+        <p-togglebutton [(ngModel)]="selectedProduct.disponible" onLabel="Disponible" offLabel="No disponible"
+          offIcon="pi pi-times" class="w-full sm:w-40" />
+      </div>
+
     </div>
+
+
+
 
     <div class="field" *ngIf="selectedProduct?.imagenesArray?.length">
       <label>Imágenes</label>
       <div class="image-grid">
         <div *ngFor="let img of selectedProduct.imagenesArray; let i = index" class="image-item">
-          <img [src]="'https://ladies-first.shop/' + img" alt="Imagen del producto" />
+          <img [src]="'https://localhost:7027/' + img" alt="Imagen del producto" />
           <p-button icon="pi pi-trash" class="delete-btn" [loading]="deletingImageIndex === i"
             (onClick)="deleteImage(i)"></p-button>
         </div>
@@ -66,19 +75,15 @@
 
     <div class="card">
       <p-fileupload #fileUpload name="file"
-          [url]="'https://localhost:7027/Images/AgregarImagenesProducto/' + selectedProduct.id"
-          (onSelect)="onSelect($event)"
-          (onUpload)="onUpload($event)" 
-          (onError)="onError($event)"
-          (onClear)="onClear($event)"
-          [auto]="true" [multiple]="true" accept="image/*" maxFileSize="4000000"
-          mode="basic">
+        [url]="'https://localhost:7027/Images/AgregarImagenesProducto/' + selectedProduct.id"
+        (onSelect)="onSelect($event)" (onUpload)="onUpload($event)" (onError)="onError($event)"
+        (onClear)="onClear($event)" [auto]="true" [multiple]="true" accept="image/*" maxFileSize="4000000" mode="basic">
         <ng-template #empty>
           <div>Arrastra y suelta archivos para subirlos.</div>
         </ng-template>
       </p-fileupload>
     </div>
-    
+
 
     <div class="field mt-2">
       <div class="card flex justify-center gap-4">
