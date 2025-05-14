@@ -10,8 +10,7 @@
   <div class="flex">
     <p-card [style]="{ width: '20rem', overflow: 'hidden' }" class="text-center">
       <ng-template #header>
-        <img [src]="logoUrl" alt="Personaliza tu kit"
-          class="w-full object-contain p-3" />
+        <img [src]="logoUrl" alt="Personaliza tu kit" class="w-full object-contain p-3" />
       </ng-template>
 
       <ng-template #title>
@@ -31,7 +30,7 @@
 
   <!-- Resto de tus kits -->
   <div *ngFor="let kit of kits" class="flex">
-    <p-card [header]="kit.nombre" [subheader]="kit.descripcion" class="text-center"
+    <p-card *ngIf="kit.disponible" [header]="kit.nombre" [subheader]="kit.descripcion" class="text-center"
       [style]="{ width: '20rem', overflow: 'hidden' }">
 
       <div class="precio-container">
@@ -39,7 +38,7 @@
         <span *ngIf="kit.descuento > 0" class="badge-descuento">
           -{{ kit.descuento }}%
         </span>
-      
+
         <!-- Precio original tachado -->
         <span *ngIf="kit.descuento > 0" class="precio-original">
           {{ kit.precio | currency:'MXN' }}
@@ -48,13 +47,13 @@
         <span *ngIf="kit.precioConDescuento == 0" style="font-size: large;">
           Personalizalo desde: {{ kit.precio | currency:'MXN' }}
         </span>
-      
+
         <!-- Precio con descuento -->
         <span *ngIf="kit.precioConDescuento != 0" class="precio-con-descuento">
           {{ kit.precioConDescuento | currency:'MXN' }}
         </span>
       </div>
-      
+
 
       <!-- Carrusel de imágenes -->
       <p-galleria *ngIf="kit.imagenesArray?.length > 0" [value]="kit.imagenesArray" [showItemNavigators]="true"
@@ -107,7 +106,7 @@
               'opacity-60': categoria.idProductoSeleccionado !== producto.id
             }">
 
-          <p-avatar [image]="'https://ladies-first.shop/uploads/2/Captura%20de%20pantalla%202024-01-12%20215138.png'"
+          <p-avatar [image]="getImagenProducto(producto.id, false)"
             class="mr-2" size="xlarge" shape="circle" />
 
           <!-- <img [src]="'https://ladies-first.shop/uploads/2/Captura%20de%20pantalla%202024-01-12%20215138.png'"
@@ -128,7 +127,7 @@
          'border-gray-200': !productosExtras.includes(prod.id)
        }" (click)="agregarExtra(prod.id)">
 
-        <p-avatar [image]="getImagenProducto(prod.id)" class="mr-2" size="xlarge" shape="circle" />
+        <p-avatar [image]="getImagenProducto(prod, true)" class="mr-2" size="xlarge" shape="circle" />
 
 
         <div class="text-center font-medium text-gray-700">{{ prod.nombre }}</div>
@@ -144,16 +143,16 @@
     </div>
 
 
-    <div class="flex flex-column md:flex-row gap-3 mt-4">
+    <div class="flex flex-column md:flex-row gap-3 mt-4" *ngIf="tieneAlMenosUnProductoSeleccionado">
       <!-- Botón de suscripción -->
       <p-button label="Suscribirme mensualmente" icon="pi pi-refresh" severity="secondary" [loading]="loading"
-        class="w-full md:w-6" (click)="subscribe(kitSeleccionado.nombre, kitSeleccionado.precio)">
+        class="w-full md:w-12" (click)="subscribe(kitSeleccionado.nombre, kitSeleccionado.precio)">
       </p-button>
 
       <!-- Botón de compra única -->
-      <p-button label="Compra por única vez" icon="pi pi-shopping-cart" severity="primary" [loading]="loading"
+      <!-- <p-button label="Compra por única vez" icon="pi pi-shopping-cart" severity="primary" [loading]="loading"
         class="w-full md:w-6" (click)="addKitToCart(kitSeleccionado)">
-      </p-button>
+      </p-button> -->
     </div>
 
   </ng-container>
@@ -188,13 +187,54 @@
 
     <!-- Botones del modal -->
     <div class="mt-4 flex justify-content-around">
-      <p-button label="Confirmar" icon="pi pi-check" (click)="guardarKitPersonalizado()"></p-button>
+      <p-button label="Confirmar" icon="pi pi-check" (click)="guardarKitPersonalizado(true)"></p-button>
       <p-button label="Cancelar" icon="pi pi-times" (click)="regresar()"></p-button>
     </div>
   </div>
 </p-dialog>
 
-<!-- modal para personalizar el kit, el del primer card -->
+
+<!-- modal para confirmar seleccion, despues de seleccionar kit kitseleccionado > confirmar -->
+<p-dialog *ngIf="kit_personalizado" header="Confirma tu selección - ${{kit_personalizado.precioFinal}} MXN"
+  [(visible)]="mostrarConfirmacionPersonalizado" [modal]="true" [style]="{ width: '35vw' }" class="text-center">
+  <div class="p-3">
+    <!-- Información general del kit -->
+    <h3 class="mb-2">{{ kit_personalizado.nombre }}</h3>
+    <p>{{ kit_personalizado.descripcion }}</p>
+
+
+    <!-- Sección de Extras -->
+    <div class="mt-4" *ngIf="kit_personalizado.extras && kit_personalizado.extras.length > 0; else sinExtras">
+      <h4>Productos Extras</h4>
+      <div *ngFor="let extra of kit_personalizado.extras" class="mb-3 border-bottom pb-2">
+        <p class="mb-1">
+          <strong>{{ getNombreProductos(extra.id) }}</strong>
+        </p>
+        <div class="d-flex align-items-center justify-content-center">
+          <label class="me-2">Cantidad:</label>
+          <p-inputNumber [(ngModel)]="extra.cantidad" [min]="1" styleClass="w-25"
+            (ngModelChange)="actualizarCantidadExtra($event, extra)"></p-inputNumber>
+        </div>
+      </div>
+    </div>
+    <ng-template #sinExtras>
+      <p class="mt-4 text-muted">No se han seleccionado productos extras.</p>
+    </ng-template>
+
+    <!-- Botones del modal -->
+    <div class="mt-4 flex justify-content-around">
+      <p-button label="Confirmar" icon="pi pi-check" (click)="pagarCompraUnica()" [loading]="Comprando"></p-button>
+      <p-button label="Cancelar" icon="pi pi-times" (click)="regresar()"></p-button>
+    </div>
+  </div>
+</p-dialog>
+
+
+
+
+
+
+<!-- modal para personalizar el kit, el del primer card este es de kits definidos--> 
 <p-dialog *ngIf="kit_personalizado" header="Personaliza tu kit - ${{kit_personalizado.precioFinal}} MXN"
   [(visible)]="mostrar_kit_personalizado" [modal]="true" [style]="{ width: '35vw' }" class="text-center">
 
@@ -211,7 +251,7 @@
          'border-gray-200': !productosExtras.includes(prod.id)
        }" (click)="agregarExtraPersonalizado(prod.id)">
 
-      <p-avatar [image]="getImagenProducto(prod.id)" class="mr-2" size="xlarge" shape="circle" />
+      <p-avatar [image]="getImagenProducto(prod.id, false)" class="mr-2" size="xlarge" shape="circle" />
 
       <div class="text-center font-medium text-gray-700">{{ prod.nombre }}</div>
 
@@ -230,12 +270,12 @@
     <!-- Botón de suscripción mensual -->
     <p-button *ngIf="kit_personalizado.precioFinal > 150" label="Suscribirme mensualmente" icon="pi pi-refresh"
       severity="secondary" [loading]="loading" class="w-full md:w-6"
-      (click)="subscribe(kit_personalizado.nombre, kit_personalizado.precioFinal)">
+      (click)="suscribirse(kit_personalizado)">
     </p-button>
 
     <!-- Botón de compra única solo si el precio es mayor a 150 -->
     <p-button *ngIf="kit_personalizado.precioFinal > 150" label="Comprar Kit" icon="pi pi-shopping-cart"
-      severity="primary" [loading]="purchasing" class="w-full md:w-6" (click)="guardarKitPersonalizado()">
+      severity="primary" [loading]="purchasing" class="w-full md:w-6" (click)="comprarKit(kit_personalizado)">
     </p-button>
   </div>
 

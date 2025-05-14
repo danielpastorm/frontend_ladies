@@ -32,6 +32,7 @@ import { FileUpload } from 'primeng/fileupload';
 
 import { Badge, BadgeModule } from 'primeng/badge';
 import { ProgressBar } from 'primeng/progressbar';
+import { environment } from '../../../../environments/environment';
 
 
 interface UploadEvent {
@@ -50,8 +51,7 @@ interface UploadEvent {
   styleUrl: './editarproductos.component.css',
 })
 export class EditarproductosComponent {
-  isProd: boolean = false;
-  url: string = this.isProd ? "https://ladies-first.shop/" : "https://localhost:7027/"
+  url: string = environment.apiUrl;
   loading: boolean = false;
   deletingImageIndex: number = -1;
 

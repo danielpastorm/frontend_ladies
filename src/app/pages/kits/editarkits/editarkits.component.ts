@@ -288,7 +288,7 @@ export class EditarkitsComponent {
 
     return this.kitEditando.imagenes
       .split(';')
-      .map((img: string) => `https://ladies-first.shop/uploads/kit_${this.kitEditando.id}/${img.trim()}`);
+      .map((img: string) => `${this.apiUrl}uploads/kit_${this.kitEditando.id}/${img.trim()}`);
   }
 
 

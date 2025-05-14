@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 @Component({
   selector: 'app-success',
   standalone: true,
@@ -19,10 +20,16 @@ export class SuccessComponent {
     { icon: 'docs', description: 'Reporte Santander', colorClass: 'bg-santander-report', path: '/dashboard/billings/santander-report', key: 'SANTANDER_REPORT', visibility: false },
   ];
 
-  constructor(private route: ActivatedRoute) {}
+  constructor(private route: ActivatedRoute, private router: Router) {}
 
   ngOnInit(): void {
     this.sessionId = this.route.snapshot.queryParamMap.get('session_id');
     console.log("Session ID recibido:", this.sessionId);
   }
+
+
+  irAMisPedidos() {
+    this.router.navigate(['/compras']); // Ajusta la ruta a la que uses
+  }
+  
 }

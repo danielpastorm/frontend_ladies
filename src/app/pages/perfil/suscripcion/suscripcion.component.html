@@ -1,42 +1,31 @@
-<div *ngIf="suscripciones && suscripciones.length > 0; else noSubs">
+<div *ngIf="suscripciones.length > 0; else noSubs">
   <div *ngFor="let suscripcion of suscripciones" class="subscription-card">
-    <div class="subscription-card-header" 
-         [ngClass]="{'active': suscripcion.status === 'active', 'cancelled': suscripcion.status === 'canceled'}">
-      <ng-container *ngIf="suscripcion.status === 'active'; else cancelledHeader">
-        Suscripción Activa
-      </ng-container>
-      <ng-template #cancelledHeader>
-        Suscripción Cancelada
-      </ng-template>
+    <div class="subscription-card-header" [ngClass]="getStatusClass(suscripcion.status)">
+      {{ getStatusText(suscripcion.status) }}
     </div>
+
     <div class="subscription-card-body">
+      <p><strong>Id:</strong> {{ suscripcion.id }}</p>
+      <p><strong>Cliente:</strong> {{ suscripcion.customerId }}</p>
+      <p><strong>Inicio:</strong> {{ suscripcion.startDate | date:'shortDate' }}</p>
+      <p><strong>Periodo actual:</strong> {{ suscripcion.currentPeriodStart | date:'shortDate' }} - {{ suscripcion.currentPeriodEnd | date:'shortDate' }}</p>
+      <p><strong>Precio:</strong> {{ suscripcion.price | currency:suscripcion.currency }} / {{ suscripcion.interval }}</p>
+
       <ng-container *ngIf="suscripcion.status === 'active'; else cancelledContent">
-        <p>
-          <strong>Periodo:</strong> 
-          Desde {{ suscripcion.currentPeriodStart | date:'shortDate' }} hasta 
-          {{ suscripcion.currentPeriodEnd | date:'shortDate' }}<br>
-          <strong>Monto:</strong> 
-          {{ suscripcion.items[0]?.price?.unitAmount / 100 | currency:suscripcion.items[0]?.price?.currency }} 
-          ({{ suscripcion.items[0]?.price?.recurring?.interval }})
-        </p>
-        <button (click)="cancelarSuscripcion(suscripcion.id)" class="btn-cancel">
-          Cancelar Suscripción
-        </button>
+        <button (click)="cancelarSuscripcion(suscripcion.id)" class="btn-cancel">Cancelar Suscripción</button>
       </ng-container>
+
       <ng-template #cancelledContent>
-        <p>Tu suscripción fue cancelada.</p>
-        <button (click)="redireccionarAKits()" class="btn-kits">
-          Ver Nuestros Kits
-        </button>
+        <p>Suscripción cancelada.</p>
+        <button (click)="redireccionarAKits()" class="btn-kits">Ver nuestros kits</button>
       </ng-template>
     </div>
   </div>
 </div>
+
 <ng-template #noSubs>
   <div class="no-subs">
     <p>No tienes suscripciones activas.</p>
-    <button (click)="redireccionarAKits()" class="btn-kits">
-      Ver nuestros kits
-    </button>
+    <button (click)="redireccionarAKits()" class="btn-kits">Ver nuestros kits</button>
   </div>
 </ng-template>

@@ -163,6 +163,7 @@ export class AppComponent {
         this.isLoggingOut = true;
         this.authService.logout();
         this.isLoggingOut = false;
+        this.router.navigate(["/"]);
     }
 
     showSuccess() {
@@ -287,8 +288,8 @@ export class AppComponent {
                 icon: 'pi pi-user',
                 items: [
                     { label: 'Mi Perfil', icon: 'pi pi-user', routerLink: ['/miperfil'] },
-                    { label: 'Mis compras', icon: 'pi pi-server', routerLink: ['/compras'] },
-                    { label: 'Administrar suscripción', icon: 'pi pi-server', routerLink: ['/suscripcion'] }
+                    { label: 'Mis compras', icon: 'pi pi-shopping-cart', routerLink: ['/compras'] },
+                    { label: 'Administrar suscripción', icon: 'pi pi-cog', routerLink: ['/suscripcion'] }
                 ]
             });
             this.items.push(

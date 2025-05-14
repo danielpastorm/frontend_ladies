@@ -10,11 +10,13 @@
         <ng-template #header>
             <tr>
                 <th style="width: 5rem"></th>
-                <th pSortableColumn="name">Nombre <p-sortIcon field="name" /></th>
+                <th pSortableColumn="nombreKit">Nombre <p-sortIcon field="nombreKit" /></th>
                 <th>Imagen</th>
-                <th pSortableColumn="price">Precio <p-sortIcon field="price" /></th>
-                <th pSortableColumn="category">Frecuencia <p-sortIcon field="category" /></th>
-                <th pSortableColumn="inventoryStatus">Estatus <p-sortIcon field="inventoryStatus" /></th>
+                <th pSortableColumn="total">Precio <p-sortIcon field="total" /></th>
+                <th pSortableColumn="frecuenciaEnvio">Frecuencia <p-sortIcon field="frecuenciaEnvio" /></th>
+                <th>Estatus</th>
+                <th pSortableColumn="notasAdmin">Comentarios / Guia <p-sortIcon field="notasAdmin" /></th>
+
             </tr>
         </ng-template>
         <ng-template #body let-product let-expanded="expanded">
@@ -28,9 +30,11 @@
                 <td>{{ product.total | currency : 'MXN' }}</td>
                 <td>{{ product.frecuenciaEnvio == "mensual" ? product.frecuenciaEnvio : "Compra única" }}</td>
                 <td>
-                    <p-tag [value]="product.inventoryStatus" [severity]="getSeverity(product.nombreKit)"
-                        [textContent]="product.enviada" />
+                    <p-tag [value]="product.inventoryStatus" [severity]="getSeverity(product)"
+                        [textContent]="getText(product)" />
                 </td>
+                <td>{{ product.notasAdmin }}</td>
+
             </tr>
         </ng-template>
         <ng-template #expandedrow let-product>

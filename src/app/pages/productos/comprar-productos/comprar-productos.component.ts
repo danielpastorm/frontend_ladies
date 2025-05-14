@@ -11,12 +11,17 @@ import { GalleriaModule } from 'primeng/galleria';
 
 import { Message } from 'primeng/message';
 import { ActivatedRoute } from '@angular/router';
-import { HttpParams } from '@angular/common/http';
+import { environment } from '../../../../environments/environment';
+
+import { ConfirmationService } from 'primeng/api';
+import { ConfirmDialog } from 'primeng/confirmdialog';
+import { ToastModule } from 'primeng/toast';
+import { FloatLabelStyle } from 'primeng/floatlabel';
 
 @Component({
   selector: 'app-comprar-productos',
-  imports: [CardModule, ButtonModule, CommonModule, ProgressSpinnerModule, GalleriaModule, Message],
-  providers: [],
+  imports: [CardModule, ButtonModule, CommonModule, ProgressSpinnerModule, GalleriaModule, Message, ConfirmDialog, ToastModule],
+  providers: [ConfirmationService, MessageService],
   templateUrl: './comprar-productos.component.html',
   styleUrl: './comprar-productos.component.css'
 })
@@ -35,13 +40,14 @@ export class ComprarProductosComponent {
     }
   ];
 
-  isProd: boolean = false;
-  url: string = this.isProd ? "https://ladies-first.shop/" : "https://localhost:7027/"
+  url: string = environment.apiUrl;
 
 
   emergencia: boolean = false;
 
-  constructor(private productoService: ProductService, private auth: AuthService, private cartService: ProductService, private messageService: MessageService, private route: ActivatedRoute) {
+  constructor(private productoService: ProductService, private auth: AuthService, private cartService: ProductService, private messageService: MessageService, private route: ActivatedRoute,
+    private confirmationService: ConfirmationService
+  ) {
     this.route.queryParams.subscribe(params => {
       this.emergencia = params['emergencia'] === 'true' || false;
 
@@ -51,6 +57,24 @@ export class ComprarProductosComponent {
   ngOnInit() {
     this.cargando = true;
     this.fetchProducts();
+    if (this.emergencia) {
+      this.confirm();
+    }
+  }
+
+  confirm() {
+    this.confirmationService.confirm({
+      header: 'Estas Realizando una compra de emergenia, tus productos serán enviados con prioridad en un plazo de 2 a 3 días hábiles, y se aplicará un cargo adicional de $149MXN por el servicio express',
+      message: 'Aceptas seguir en servicio de emergencia o cambiar a normal?.',
+      accept: () => {
+        this.messageService.add({ severity: 'info', summary: 'Si es emergencia' });
+        this.emergencia = true;
+      },
+      reject: () => {
+        this.messageService.add({ severity: 'info', summary: 'Se cancelo', detail: 'Falsa alarma' });
+        this.emergencia = false;
+      },
+    });
   }
 
   fetchProducts() {
@@ -85,6 +109,24 @@ export class ComprarProductosComponent {
 
   addToCart(product: any) {
     console.log(product);
+
+    if (this.emergencia) {
+      const cartItem = {
+        userId: localStorage.getItem("Id"),
+        Nombre: "cargo envio",
+        Descripcion: "cargo emergencia",
+        productoId: 5,
+        kitId: null, // Es un producto, no un kit
+        cantidad: 1, // Se puede modificar según la necesidad
+        precioUnitario: 100
+      };
+      console.log("emergencia", cartItem)
+      this.cartService.addToCart(cartItem).subscribe({
+        next: data => {
+          console.log("se agrego 100 extra de envio")
+        }
+      });
+    }
     const cartItem = {
       userId: localStorage.getItem("Id"),
       Nombre: product.nombre,
@@ -124,7 +166,7 @@ export class ComprarProductosComponent {
   }
 
 
-  cambiarAEstandar(){
+  cambiarAEstandar() {
     this.emergencia = false;
   }
 

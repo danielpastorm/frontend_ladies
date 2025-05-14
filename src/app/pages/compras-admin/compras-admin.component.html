@@ -1,71 +1,206 @@
 <div class="card">
-  <p-toast />
-  <p-table [value]="products" dataKey="id" [tableStyle]="{ 'min-width': '60rem' }" [expandedRowKeys]="expandedRows">
-      <ng-template #caption>
-          <div class="flex flex-wrap justify-end gap-2">
-              <p-button label="Expand All" icon="pi pi-plus" text (onClick)="expandAll()" />
-              <p-button label="Collapse All" icon="pi pi-minus" text (onClick)="collapseAll()" />
-          </div>
-      </ng-template>
-      <ng-template #header>
-          <tr>
-              <th style="width: 5rem"></th>
-              <th pSortableColumn="name">Nombre <p-sortIcon field="name" /></th>
-              <th>Imagen</th>
-              <th pSortableColumn="price">Precio <p-sortIcon field="price" /></th>
-              <th pSortableColumn="category">Frecuencia <p-sortIcon field="category" /></th>
-              <th pSortableColumn="inventoryStatus">Estatus <p-sortIcon field="inventoryStatus" /></th>
-          </tr>
-      </ng-template>
-      <ng-template #body let-product let-expanded="expanded">
-          <tr>
-              <td>
-                  <p-button type="button" pRipple [pRowToggler]="product" [text]="true" [rounded]="true"
-                      [plain]="true" [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" />
-              </td>
-              <td>{{ product.nombreKit }}</td>
-              <td><img [src]="defaultImage" width="50" class="shadow-lg" /></td>
-              <td>{{ product.total | currency : 'MXN' }}</td>
-              <td>{{ product.frecuenciaEnvio == "mensual" ? product.frecuenciaEnvio : "Compra única" }}</td>
-              <td>
-                  <p-tag [value]="product.inventoryStatus" [severity]="getSeverity(product.nombreKit)"
-                      [textContent]="product.enviada" />
-              </td>
-          </tr>
-      </ng-template>
-      <ng-template #expandedrow let-product>
-          <tr>
-              <td colspan="7">
-                  <div class="p-4">
-                      <h5>Productos {{ product.nombreKit }}</h5>
-                      <p-table [value]="product.productos" dataKey="id">
-                          <ng-template #header>
-          <tr>
-              <th pSortableColumn="id">Producto <p-sortIcon field="price" /></th>
-              <th pSortableColumn="customer">Cantidad <p-sortIcon field="customer" /></th>
-              <th pSortableColumn="amount">Costo <p-sortIcon field="amount" /></th>
-          </tr>
-      </ng-template>
-      <ng-template #body let-order>
-          <tr>
-              <td>{{ order.Nombre }}</td>
-              <td>{{ order.Cantidad }}</td>
-              <td>
-                  {{ order.Precio != 0 ? (order.Precio | currency : 'MXN') : 'Incluido en el Kit' }}
-              </td>
+    <p-toast />
+
+    <p-table [value]="products" dataKey="id" [tableStyle]="{ 'min-width': '60rem' }" [expandedRowKeys]="expandedRows">
+        <ng-template #caption>
+            <div class="flex flex-wrap justify-end gap-2">
+                <p-button label="Expand All" icon="pi pi-plus" text (onClick)="expandAll()" />
+                <p-button label="Collapse All" icon="pi pi-minus" text (onClick)="collapseAll()" />
+            </div>
+        </ng-template>
+        <ng-template #header>
+            <tr>
+                <th style="width: 5rem"></th>
+                <th pSortableColumn="idStripe">Id Stripe <p-sortIcon field="idStripe" /></th>
+
+                <th pSortableColumn="idUsuario">Nombre del cliente <p-sortIcon field="idUsuario" /></th>
+
+                <th pSortableColumn="nombreKit">Nombre <p-sortIcon field="name" /></th>
+
+                <th pSortableColumn="esSuscripcion">Suscripción Activa <p-sortIcon field="esSuscripcion" /> </th>
+                <th pSortableColumn="total">Precio <p-sortIcon field="total" /></th>
+                <th pSortableColumn="frecuenciaEnvio">Frecuencia <p-sortIcon field="frecuenciaEnvio" /></th>
+                <th pSortableColumn="fechaCreacion">Fecha de pedido <p-sortIcon field="fechaCreacion" /></th>
+                <th pSortableColumn="notasAdmin">Comentarios Admin <p-sortIcon field="notasAdmin" /></th>
 
 
-          </tr>
-      </ng-template>
-      <ng-template #emptymessage>
-          <tr>
-              <td colspan="6">There are no order for this product yet.</td>
-          </tr>
-      </ng-template>
-  </p-table>
+                <th>Estatus</th>
+                <th> Cambiar Estatus </th>
+
+            </tr>
+        </ng-template>
+        <ng-template #body let-product let-expanded="expanded">
+            <tr>
+                <td>
+                    <p-button type="button" pRipple [pRowToggler]="product" [text]="true" [rounded]="true"
+                        [plain]="true" [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" />
+                </td>
+                <td>{{ getId(product.idUsuario) }}</td>
+
+
+                <td>{{ getNombre(product.idUsuario) }}</td>
+
+                  
+                <td>{{ product.nombreKit }}</td>
+                <td>
+                    {{
+                    product.esSuscripcion
+                    ? (product.activa ? 'Suscripción activa' : 'Cancelada')
+                    : 'No aplica'
+                    }}
+                </td>
+                <td>{{ product.total | currency : 'MXN' }}</td>
+                <td>{{ product.frecuenciaEnvio == "mensual" ? product.frecuenciaEnvio : "Compra única" }}</td>
+                <td>
+                    {{product.fechaCreacion | date}}
+                 </td>
+                 <td>
+                   {{product.notasAdmin}}
+                </td>
+                <td>
+                    <p-tag [value]="product.inventoryStatus" [severity]="getSeverity(product)"
+                        [textContent]="getTextcontent(product)" />
+                </td>
+
+               
+
+                <td class="flex align-items-center">
+                    <p-button icon="pi pi-pencil" (onClick)="abrirCambioEstatus(product)"
+                        class="p-button-rounded p-button-text p-button-primary me-2"
+                        [style]="{ 'font-size': '1.5rem', 'margin-right': '0.75rem' }">
+                    </p-button>
+
+                    <p-button icon="pi pi-id-card" (onClick)="abrirInfo(product)"
+                        class="p-button-rounded p-button-text p-button-primary" [style]="{ 'font-size': '1.5rem' }">
+                    </p-button>
+                </td>
+
+                
+
+            </tr>
+        </ng-template>
+        <ng-template #expandedrow let-product>
+            <tr>
+                <td colspan="7">
+                    <div class="p-4">
+                        <h5>Productos {{ product.nombreKit }}</h5>
+                        <p-table [value]="product.productos" dataKey="id">
+                            <ng-template #header>
+            <tr>
+                <th pSortableColumn="id">Producto <p-sortIcon field="price" /></th>
+                <th pSortableColumn="customer">Cantidad <p-sortIcon field="customer" /></th>
+                <th pSortableColumn="amount">Costo <p-sortIcon field="amount" /></th>
+            </tr>
+        </ng-template>
+        <ng-template #body let-order>
+            <tr>
+                <td>{{ order.Nombre }}</td>
+                <td>{{ order.Cantidad }}</td>
+                <td>
+                    {{ order.Precio != 0 ? (order.Precio | currency : 'MXN') : 'Incluido en el Kit' }}
+                </td>
+
+
+            </tr>
+        </ng-template>
+        <ng-template #emptymessage>
+            <tr>
+                <td colspan="6">There are no order for this product yet.</td>
+            </tr>
+        </ng-template>
+    </p-table>
 </div>
 </td>
 </tr>
 </ng-template>
 </p-table>
+</div>
+
+<p-dialog header="Actualizar" [modal]="true" [(visible)]="modalCambioVisible"
+    [style]="{ width: '25rem', height: '25rem' }">
+
+
+    <p-select [options]="stateOptions" [(ngModel)]="opcionSeleccionada" optionLabel="name" optionValue="code"
+        placeholder="Selecciona un estatus" class="w-full md:w-18rem" />
+
+    <!-- Input si seleccionó "Enviada" -->
+    <div *ngIf="opcionSeleccionada === 'Enviada'" class="w-full mt-2">
+        <input pInputText class="w-full" [(ngModel)]="textoInput" placeholder="Ingresa la guía/comentarios" />
+    </div>
+
+    <p-floatlabel variant="on" class="mt-2" *ngIf="opcionSeleccionada === 'Cancelada'">
+        <input pInputText id="on_label" [(ngModel)]="NotasAdmin" autocomplete="off" />
+        <label for="on_label">Motivo de cancelación</label>
+    </p-floatlabel>
+
+    <!-- Botón si eligió cualquier opción -->
+    <div *ngIf="opcionSeleccionada && (NotasAdmin.length > 5 || textoInput.length || opcionSeleccionada != 'Enviada'  && opcionSeleccionada != 'Cancelada' )"
+        class="w-full flex justify-content-center mt-2">
+        <p-button label="Guardar" (onClick)="guardarCambio()" class="w-full md:w-12rem" />
+    </div>
+
+</p-dialog>
+
+
+<div class="card flex justify-center" >
+    <p-dialog header="Información del Cliente" [modal]="true" [(visible)]="abrirInfoB" [style]="{ width: '50rem' }"
+        [breakpoints]="{ '1199px': '75vw', '575px': '90vw' }" [maximizable]="true">
+
+
+        <div class="grid" *ngIf="data">
+
+            <div class="col-6">
+                <strong>Nombre:</strong>
+                <div>{{ data.nombre }}</div>
+            </div>
+
+            <div class="col-6">
+                <strong>Email:</strong>
+                <div>{{ data.email }}</div>
+            </div>
+
+            <div class="col-6 mt-2">
+                <strong>Fecha de nacimiento:</strong>
+                <div>{{ data.fechaNacimiento | date:'dd/MM/yyyy' }}</div>
+            </div>
+
+            <div class="col-6 mt-2">
+                <strong>Teléfono:</strong>
+                <div>{{ data.numero || 'No registrado' }}</div>
+            </div>
+
+            <div class="col-6 mt-2">
+                <strong>Calle y número:</strong>
+                <div>{{ data.calle }}</div>
+            </div>
+
+            <div class="col-6 mt-2">
+                <strong>Colonia:</strong>
+                <div>{{ data.colonia }}</div>
+            </div>
+
+            <div class="col-6 mt-2">
+                <strong>Código Postal:</strong>
+                <div>{{ data.codigoPostal }}</div>
+            </div>
+
+            <div class="col-6 mt-2">
+                <strong>Ciudad:</strong>
+                <div>{{ data.ciudad }}</div>
+            </div>
+
+            <div class="col-6 mt-2">
+                <strong>Estado:</strong>
+                <div>{{ data.estado }}</div>
+            </div>
+
+            <div class="col-12 mt-4">
+                <strong>Envio cada dia de mes:</strong>
+                <div>{{ data.idStripe }}</div>
+            </div>
+
+        </div>
+
+    </p-dialog>
+
 </div>

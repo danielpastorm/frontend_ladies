@@ -79,39 +79,44 @@ export class ComprasComponent implements OnInit {
     this.expandedRows = {};
   }
 
-  getSeverity(status: string) {
-    switch (status) {
-      case 'INSTOCK':
-        return 'success';
-      case 'Premium':
-        return 'warn';
-      case 'OUTOFSTOCK':
-        return 'danger';
-      default:
-        return 'danger'
+  getSeverity(obj: any) {
+    console.log(obj)
+    if (obj.cancelada) {
+      return 'danger'
     }
-  }
-
-  getStatusSeverity(status: string) {
-    switch (status) {
-      case 'PENDING':
-        return 'warn';
-      case 'DELIVERED':
-        return 'success';
-      case 'CANCELLED':
-        return 'danger';
-      default:
-        return 'danger';
+    else if (obj.esSuscripcion && obj.activa == obj.pagado) {
+      return 'success'
+    } else if (!obj.esSuscripcion && !obj.pagado) {
+      return 'warn'
     }
+    return 'info'
 
   }
 
-  // onRowExpand(event: TableRowExpandEvent) {
-  //   this.messageService.add({ severity: 'info', summary: 'Product Expanded', detail: event.data.name, life: 3000 });
-  // }
+  getText(obj: any) {
+    if (obj.cancelada) {
+      return 'Cancelada'
+    }
+    if (obj.esSuscripcion && obj.activa == obj.pagado) {
+      return 'Activa y Pagada'
+    }
+    else if (!obj.esSuscripcion && !obj.pagado) {
+      return 'No pagada'
+    } else if (!obj.esSuscripcion && obj.pagado) {
+      return 'Compra Pagada'
+    }
+    return 'N/A'
+  }
 
-  // onRowCollapse(event: TableRowCollapseEvent) {
-  //   this.messageService.add({ severity: 'success', summary: 'Product Collapsed', detail: event.data.name, life: 3000 });
-  // }
 
 }
+
+// onRowExpand(event: TableRowExpandEvent) {
+//   this.messageService.add({ severity: 'info', summary: 'Product Expanded', detail: event.data.name, life: 3000 });
+// }
+
+// onRowCollapse(event: TableRowCollapseEvent) {
+//   this.messageService.add({ severity: 'success', summary: 'Product Collapsed', detail: event.data.name, life: 3000 });
+// }
+
+

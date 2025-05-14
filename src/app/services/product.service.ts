@@ -6,6 +6,7 @@ import { Categorias, Kit } from '../Data/kit.types';
 import { KitDetail } from '../Data/kit.types';
 import { Kit_get } from '../Data/kit.types';
 import { environment } from '../../environments/environment';
+import { producto } from '../pages/kits/crearkit/crearkit.component';
 
 
 export interface DynamicSubscriptionRequest {
@@ -26,6 +27,12 @@ export interface SubscriptionResponse {
   // Puedes agregar otros campos según tu modelo de Stripe
 }
 
+export interface Usuario {
+  idStripe: string;
+  id: string;
+  nombre: string;
+}
+
 
 
 @Injectable({
@@ -39,11 +46,17 @@ export interface SubscriptionResponse {
 
 export class ProductService {
 
+  usuarios: Usuario[] = [];
+
 
   private apiUrl: string = environment.apiUrl;
 
   private Isprod = false;
   constructor(private http: HttpClient) { }
+
+  getUsersList(): Observable<Usuario[]> {
+    return this.http.get<Usuario[]>(`${this.apiUrl}CheckOut/getUsers`);
+  }
 
   getProductsMini(): Promise<Producto[]> {
     return this.http.get<Producto[]>(`${this.apiUrl}productos/listar`).toPromise()
@@ -137,10 +150,11 @@ export class ProductService {
     return this.http.delete(`${this.apiUrl}CheckOut/clear/${userId}`);
   }
 
-  
+
   cancelarPedido(userId: string): Observable<any> {
-    return this.http.delete(`${this.apiUrl}CheckOut/cancelarPedido/${userId}`);
+    return this.http.patch(`${this.apiUrl}CheckOut/cancelarPedido/${userId}`, null);
   }
+
 
 
   checkout(userId: string, cartItems: any[]): Observable<any> {
@@ -150,13 +164,16 @@ export class ProductService {
   guardarPedido(pedido: any) {
     return this.http.post(`${this.apiUrl}CheckOut/guardar`, pedido);
   }
-
   obtenerPedidosPorCliente(clienteId: string) {
     return this.http.get<any[]>(`${this.apiUrl}CheckOut/usuario/${clienteId}`);
   }
 
-  cambiarEstadoPedido(id: string, data: { NuevoEstado: string; Guia: string }) {
-    return this.http.put(`${this.apiUrl}CheckOut/${id}/estado`, data, {
+  obtenerClienteInfo(clienteId: string) {
+    return this.http.get<any[]>(`${this.apiUrl}CheckOut/retornarPerfil/${clienteId}`);
+  }
+
+  cambiarEstadoPedido(data: any) {
+    return this.http.put(`${this.apiUrl}CheckOut/cambiarEstado`, data, {
       headers: { 'Content-Type': 'application/json' }
     });
   }
@@ -184,7 +201,8 @@ export class ProductService {
 
 
   listSubscriptions(customerId: string): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}CheckOut/list-subs?customerId=${customerId}`);
+    const cleanedId = customerId.replace(/"/g, '');
+    return this.http.get<any>(`${this.apiUrl}CheckOut/list-subs?customerId=${cleanedId}`);
   }
 
   cancelSubscription(subscriptionId: string): Observable<any> {

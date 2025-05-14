@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { FechaPeriodo } from '../Data/perfil.types';
+import { environment } from '../../environments/environment';
 
 
 @Injectable({
@@ -11,8 +12,7 @@ export class PerfilServiceService {
 
   constructor(private http: HttpClient) { }
 
-  private isProd = false;
-  private apiUrl = this.isProd ? "/User" : 'https://localhost:7027/User'
+  private apiUrl = environment.apiUrl + "User";
 
 
   RegistrarPeriodo(fechas: FechaPeriodo): Observable<any> {

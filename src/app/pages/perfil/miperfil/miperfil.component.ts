@@ -139,6 +139,7 @@ export class MiperfilComponent {
   showDialog() {
     this.visible = true;
   }
+  
   loginModel: LoginDTO = {
     email: '',
     password: ''
@@ -281,7 +282,7 @@ export class MiperfilComponent {
 
     const diaUtCiclo = this.diaAprox ?? 0
     if (this.diaAprox == dia.getDate()) return 'periodo'
-   
+
 
     if (fechaOvulacion && this.diaIgual(dia, fechaOvulacion)) return 'ovulacion';
     //if (dias_.some(d => d == dia.getDate())) return 'fertile';
@@ -451,6 +452,18 @@ export class MiperfilComponent {
         this.errorMessage = ''; // ✅ Limpia error si todo va bien
         this.autenticated = true;
         this.loading = false;
+
+        this.perfilService.ObtenerPeriodo(localStorage.getItem("Id") ?? '').subscribe({
+          next: data => {
+            console.log("data", data)
+            this.regular = data.esRegular;
+            this.ultCiclo = data.ultimoCiclo;
+            this.confirmado = data.Confirmado;
+            this.diaAprox = data.diaAproximado;
+            this.generarClasesDias();
+
+          }
+        })
       },
       error: err => {
         console.error('Error al cargar el perfil:', err);
@@ -460,17 +473,16 @@ export class MiperfilComponent {
       }
     });
 
-    this.perfilService.ObtenerPeriodo(localStorage.getItem("Id") ?? '').subscribe({
-      next: data => {
-        console.log("data", data)
-        this.regular = data.esRegular;
-        this.ultCiclo = data.ultimoCiclo;
-        this.confirmado = data.Confirmado;
-        this.diaAprox = data.diaAproximado;
-        this.generarClasesDias();
 
-      }
-    })
+  }
+
+  showLogin: boolean = false;
+  showDialog2() {
+    this.showLogin = true;
+  }
+
+  closeDialog() {
+
   }
 
 

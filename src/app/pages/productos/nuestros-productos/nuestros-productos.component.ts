@@ -1,27 +1,18 @@
 import { Component, OnInit } from '@angular/core';
-
-import { DataView } from 'primeng/dataview';
 import { ButtonModule } from 'primeng/button';
-import { Tag } from 'primeng/tag';
 import { CommonModule, JsonPipe } from '@angular/common';
-import { signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { DataViewModule } from 'primeng/dataview';
-import { Card, CardModule } from 'primeng/card';
+import { CardModule } from 'primeng/card';
 import { TableModule } from 'primeng/table';
 import { RatingModule } from 'primeng/rating';
-import { DynamicSubscriptionRequest, ProductService, SubscriptionResponse } from '../../../services/product.service';
-import { Toast } from 'primeng/toast';
-import { Carousel } from 'primeng/carousel';
+import { DynamicSubscriptionRequest, ProductService } from '../../../services/product.service';
 import { Dialog } from 'primeng/dialog';
-import { Producto } from '../../../Data/producto.types';
-import { FloatLabel } from 'primeng/floatlabel';
+import { CompraUnica, Producto } from '../../../Data/producto.types';
 import { MessageService } from 'primeng/api';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
-import { FileUpload } from 'primeng/fileupload';
 import { GalleriaModule } from 'primeng/galleria';
-import { Badge, BadgeModule } from 'primeng/badge';
-import { ProgressBar } from 'primeng/progressbar';
+import { BadgeModule } from 'primeng/badge';
 import { RippleModule } from 'primeng/ripple';
 import { ToastModule } from 'primeng/toast';
 import { FormsModule } from '@angular/forms';  // <-- Importa FormsModule
@@ -34,16 +25,13 @@ import { InputNumberModule } from 'primeng/inputnumber';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { CarouselModule } from 'primeng/carousel';
 import { ToggleButtonModule } from 'primeng/togglebutton';
-import { PrimeNG } from 'primeng/config';
-import { Dropdown, DropdownModule } from 'primeng/dropdown';
+import { DropdownModule } from 'primeng/dropdown';
 import { loadStripe, Stripe } from '@stripe/stripe-js';
 import { AuthService } from '../../../services/auth/auth.service';
-
 import { AvatarModule } from 'primeng/avatar';
 import { OverlayBadgeModule } from 'primeng/overlaybadge';
-
 import { environment } from '../../../../environments/environment';
-import { UndoIcon } from 'primeng/icons';
+import { retry } from 'rxjs';
 
 @Component({
   selector: 'app-nuestros-productos',
@@ -59,6 +47,8 @@ import { UndoIcon } from 'primeng/icons';
   styleUrl: './nuestros-productos.component.css',
 
 })
+
+
 export class NuestrosProductosComponent implements OnInit {
   apiUrl: string = environment.apiUrl;
   logoUrl: string = this.apiUrl + "uploads/resources/logo.png"
@@ -74,17 +64,12 @@ export class NuestrosProductosComponent implements OnInit {
   ];
   sortKey: string = 'precio';
 
-
-
-
   loading: boolean = false;
   purchasing: boolean = false;
-
 
   deletingImageIndex: number = -1;
 
   visible: boolean = false;
-
 
   uploadedFiles: any[] = [];
   cargando: boolean = true;
@@ -93,11 +78,12 @@ export class NuestrosProductosComponent implements OnInit {
 
 
 
+
   displayEditModal: boolean = false;
 
   mostrar_kit_personalizado: boolean = false;
 
-
+  IdStripe: string = "";
   ////////////////
   kits: any[] = [];
   productosCatalogo: any[] = [];
@@ -124,12 +110,28 @@ export class NuestrosProductosComponent implements OnInit {
 
   ngOnInit() {
     this.cargando = true;
+    this.obtenerProductos();
+    this.setIdStripe();
+    this.obtenerKits();
+  }
+
+  setIdStripe() {
+    this.authService.getCustomerIdStripe(localStorage.getItem("Id") ?? '').subscribe({
+      next: data => {
+        const id = data.replace(/"/g, '');
+        this.IdStripe = id;
+      }
+    })
+  }
+
+  obtenerProductos() {
     this.productService.getProducts().subscribe(data => {
       this.productos = data;
       console.log('Productos cargados:', this.productos);
     });
+  }
 
-
+  obtenerKits() {
     this.productService.getKits().subscribe(data => {
       this.productosCatalogo = data;
 
@@ -145,18 +147,19 @@ export class NuestrosProductosComponent implements OnInit {
 
       console.log('Kits procesados:', this.kits);
     });
-
-
   }
 
   obtenerUrlImagen(id: number, nombreImagen: string): string {
-    return `https://ladies-first.shop/uploads/kit_${id}/${nombreImagen}`;
+    return `${this.apiUrl}uploads/kit_${id}/${nombreImagen}`;
   }
 
+
+  precioBase: number = 0;
   seleccionarKit(kit: any) {
 
     this.kitSeleccionado = JSON.parse(JSON.stringify(kit)); // copia profunda
     console.log("seleccionar kit", this.kitSeleccionado)
+    this.precioBase = this.kitSeleccionado.precio;
     this.productosExtras = [];
     this.mostrarModal = true;
   }
@@ -165,10 +168,24 @@ export class NuestrosProductosComponent implements OnInit {
     return this.productosCatalogo.find(p => p.id === id)?.nombre || `ID ${id}`;
   }
 
-  getImagenProducto(id: number): string {
-    // return `http://localhost:7027/uploads/2/${id}.jpg`;
-    return 'https://ladies-first.shop/uploads/2/Captura%20de%20pantalla%202024-01-12%20215138.png'
+  getImagenProducto(prod: any, esExtra: boolean): string {
+    const url: string = environment.apiUrl;
+    if (esExtra) {
+      const firstImage = prod.imagenes.split(';')[0].trim(); // Obtiene la primera imagen y elimina espacios
+      return url + 'uploads/' + prod.id + '/' + firstImage;
+    }
+
+    const imagen = this.productos.find(p => p.id === prod)?.imagenes.split(';')[0].trim();
+    return url + 'uploads/' + prod + '/' + imagen;
+
+
+
   }
+
+  get tieneAlMenosUnProductoSeleccionado(): boolean {
+    return this.kitSeleccionado.categorias?.some((c: { idProductoSeleccionado: null; }) => c.idProductoSeleccionado != null);
+  }
+
 
   agregarExtra(prodId: number): void {
     if (!this.productosExtras.includes(prodId)) {
@@ -195,6 +212,7 @@ export class NuestrosProductosComponent implements OnInit {
 
     }
   }
+
   quitarExtraPersonalizado(prodId: number): void {
     const index = this.productosExtras.indexOf(prodId);
     if (index !== -1) {
@@ -215,6 +233,12 @@ export class NuestrosProductosComponent implements OnInit {
     }
   }
 
+  quitarExtra(prodId: number): void {
+    this.productosExtras = this.productosExtras.filter(id => id !== prodId);
+    // Actualizamos el precio final al quitar un extra
+    console.log(this.productosExtras)
+    this.actualizarPrecioFinal();
+  }
 
   calcularTotalExtras(extras: { id: number, cantidad: number }[]): number {
     let total = 0;
@@ -232,18 +256,13 @@ export class NuestrosProductosComponent implements OnInit {
   }
 
 
-  quitarExtra(prodId: number): void {
-    this.productosExtras = this.productosExtras.filter(id => id !== prodId);
-    // Actualizamos el precio final al quitar un extra
-    console.log(this.productosExtras)
-    this.actualizarPrecioFinal();
-  }
 
   _precio: number = 0;
   actualizarPrecioFinal(): void {
     // Parseamos el JSON actual del kit
     let kitData: any = { categorias: [], extras: [], precioFinal: null };
-    const precioBase = this.kitSeleccionado.precio || 0;
+    const precioBase = this.precioBase || 0;
+
     if (this._precio == 0) {
       this._precio = this.kitSeleccionado.precio || 0;
     }
@@ -309,10 +328,6 @@ export class NuestrosProductosComponent implements OnInit {
     this.kitSeleccionado.precio = this._precio + precioExtras;
     console.log("Kit actualizado con extras y precio final:", this.kitSeleccionado);
   }
-
-
-
-
 
   confirmarSeleccion(): void {
     // Parsear el JSON existente en el kit (si existe)
@@ -395,6 +410,7 @@ export class NuestrosProductosComponent implements OnInit {
 
 
   addKitToCart(kit: any) {
+    return //deshabilitada
     const cartItem = {
       userId: localStorage.getItem("Id"),
       productoId: null, // Es un kit, no un producto individual
@@ -404,7 +420,7 @@ export class NuestrosProductosComponent implements OnInit {
       Descripcion: ""
     };
     const kitg = this.generarObjetoKitPersonalizado();
-    this.kit_personalizado = kitg
+    this.kit_personalizado = kitg;
     this.mostrarModal = false;
     this.mostrarConfirmacion = true;
     return
@@ -439,24 +455,53 @@ export class NuestrosProductosComponent implements OnInit {
     return p?.nombre || `Producto ID: ${id}`;
   }
 
+  nombre: string = "";
+  precio: number = 0;
   subscribe(nombre: string, precio: number) {
     // Mostrar indicador de carga (opcional)
+    this.nombre = nombre;
+    this.precio = precio;
+
+    const kitg = this.generarObjetoKitPersonalizado();
+    this.kit_personalizado = kitg;
+
+    this.mostrarModal = false;
+    this.mostrarConfirmacion = true;
+
+  }
+
+
+  trySuscribe() {
     this.loading = true;
     let kit = undefined;
 
-    //aqui debes guardar el pedido
     if (this.kit_personalizado != undefined) {
-      console.log("kit personalizado", this.kit_personalizado)
+      console.log("kit_personalizado:", this.kit_personalizado);
       kit = this.kit_personalizado;
-
     } else {
-      console.log("kit normal", this.kitSeleccionado)
+      console.log("kitSeleccionado:", this.kitSeleccionado)
       kit = this.kitSeleccionado;
     }
 
+    kit = this.kitSeleccionado;
+
+
+    // const productosDeCategorias = kit.categorias.map((categoria: { idProductoSeleccionado: any; cantidadSeleccionada: any; }) => ({
+    //   id: categoria.idProductoSeleccionado,
+    //   cantidad: categoria.cantidadSeleccionada ?? 1 // Si no hay cantidadSeleccionada, pon 1
+    // }));
+
+    // const productosExtras = kit.extras.map((extra: { id: any; cantidad: any; }) => ({
+    //   id: extra.id,
+    //   cantidad: extra.cantidad
+    // }));
+
+    // const productosFinal = [...productosDeCategorias, ...productosExtras];
+    const id = this.IdStripe.replace(/"/g, '');
+
     const suscripcion = {
       idUsuario: localStorage.getItem("Id"),
-      idUsuarioStripe: "undefined",
+      idUsuarioStripe: id,
       esSuscripcion: true,
       activa: true,
       pagado: false,
@@ -465,158 +510,329 @@ export class NuestrosProductosComponent implements OnInit {
       enviada: false,
       fechaEnvio: null,
       frecuenciaEnvio: "mensual",
-      total: kit.precio,
+      total: kit.precio ? kit.precio : kit.precioFinal,
       fechaCreacion: new Date().toISOString(),
       cancelada: false,
       motivoCancelacion: null,
       notasAdmin: ""
     };
-    console.log("objeto para back", suscripcion)
+    console.log("suscrpcion ", suscripcion)
+
 
     this.productService.RegistrarCompraSuscripcion(suscripcion).subscribe({
       next: data => {
         console.log("Compra/suscripción registrada correctamente:", data);
-
       },
       error: error => {
         if (error.status === 400) {
-          console.error("Error de validación (BadRequest):", error.error);
-          // Aquí podrías mostrar un mensaje al usuario con error.error.msg u otra propiedad
-        } else {
-          console.error("Otro error:", error);
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error de validación' });
         }
       },
       complete: () => {
-        console.log("Petición completada");
       }
     })
 
-
     const request: DynamicSubscriptionRequest = {
-      CustomerId: 'cus_S4Ri5XycZW4nfj', // Asegúrate de usar el CustomerId correcto
-      Amount: precio * 100, // Monto en centavos (por ejemplo, 15000 = $150.00)
-      Name: nombre
-      // ProductId es opcional; si no se envía se creará uno por defecto en el backend
+      CustomerId: this.IdStripe,
+      Amount: this.precio * 100,
+      Name: this.nombre
     };
 
-    this.productService.createDynamicSubscription(request).subscribe({
-      next: respuesta => {
-        // Verifica que la respuesta tenga un sessionId válido
-        if (!respuesta || !respuesta.sessionId) {
-          console.error("No se recibió sessionId en la respuesta.");
-          this.loading = false;
+    this.productService.listSubscriptions(this.IdStripe).subscribe({
+      next: (suscripciones: any[]) => {
+        const subsActivas = suscripciones.filter(sub => sub.status === 'active');
+        if (subsActivas.length > 0) {
+          this.messageService.add({ severity: 'warn', summary: 'Ya tienes una suscripción activa', detail: 'Cancela la actual antes de crear otra.' });
+          this.loading = false
           return;
         }
-
-        // Inmediatamente intenta redirigir a Stripe Checkout
-        this.stripePromise.then(stripe => {
-          if (stripe) {
-            stripe.redirectToCheckout({ sessionId: respuesta.sessionId })
-              .then(result => {
-                console.log("url: ", result.error.message)
-
-                if (result.error) {
-                  console.error("Error en redirectToCheckout:", result.error);
-                  // Fallback: redirige manualmente a la URL generada
-                }
-              });
-          } else {
-            console.error("Stripe no se cargó correctamente.");
+        this.productService.createDynamicSubscription(request).subscribe({
+          next: respuesta => {
+            // Verifica que la respuesta tenga un sessionId válido
+            if (!respuesta || !respuesta.sessionId) {
+              this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se recibió sessionId en la respuesta.' });
+              this.loading = false;
+              return;
+            }
+            this.stripePromise.then(stripe => {
+              if (stripe) {
+                stripe.redirectToCheckout({ sessionId: respuesta.sessionId })
+                  .then(result => {
+                    if (result.error) {
+                      this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error en redirectToCheckout' });
+                    }
+                  });
+              } else {
+                this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Stripe no se cargó correctamente.' });
+                this.loading = false;
+              }
+            });
+          },
+          error: err => {
+            this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al crear la suscripción' });
             this.loading = false;
           }
         });
       },
       error: err => {
-        console.error("Error al crear la suscripción:", err);
-        this.loading = false;
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo verificar tus suscripciones.' });
+      }
+    });
+  }
+
+
+
+
+  suscribirse(obj: any) {
+
+    this.loading = true;
+    let kit = obj;
+
+    const productosPersonalizados = kit.extras
+      .filter((cat: { idProductoSeleccionado: null; }) => cat.idProductoSeleccionado != null)
+      .map((cat: { idProductoSeleccionado: any; cantidadSeleccionada: any; }) => ({
+        id: cat.idProductoSeleccionado,
+        cantidad: cat.cantidadSeleccionada ?? 1
+      }));
+
+    const productosExtras = kit.extras.map((extra: { id: any; cantidad: any }) => ({
+      id: extra.id,
+      cantidad: extra.cantidad
+    }));
+
+    const compraUnica = {
+      categorias: [
+        {
+          nombre: "Personalizado",
+          productos: productosExtras
+        }
+      ],
+      extras: productosExtras,
+      precioFinal: kit.precioFinal ?? kit.precio
+    };
+
+
+
+    const id = this.IdStripe.replace(/"/g, '');
+
+    const suscripcion = {
+      idUsuario: localStorage.getItem("Id"),
+      idUsuarioStripe: id,
+      esSuscripcion: true,
+      activa: true,
+      pagado: false,
+      nombreKit: kit.nombre,
+      productosJson: JSON.stringify(compraUnica),
+      enviada: false,
+      fechaEnvio: null,
+      frecuenciaEnvio: "mensual",
+      total: kit.precio ? kit.precio : kit.precioFinal,
+      fechaCreacion: new Date().toISOString(),
+      cancelada: false,
+      motivoCancelacion: null,
+      notasAdmin: ""
+    };
+    console.log("suscrpcion ", suscripcion)
+    
+
+
+    this.productService.RegistrarCompraSuscripcion(suscripcion).subscribe({
+      next: data => {
+        console.log("Compra/suscripción registrada correctamente:", data);
+      },
+      error: error => {
+        if (error.status === 400) {
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error de validación' });
+        }
+      },
+      complete: () => {
+      }
+    })
+
+
+
+    const request: DynamicSubscriptionRequest = {
+      CustomerId: this.IdStripe,
+      Amount: obj.precioFinal * 100,
+      Name: obj.nombre
+    };
+
+    console.log("Request", request)
+
+    this.productService.listSubscriptions(this.IdStripe).subscribe({
+      next: (suscripciones: any[]) => {
+        const subsActivas = suscripciones.filter(sub => sub.status === 'active');
+        if (subsActivas.length > 0) {
+          this.messageService.add({ severity: 'warn', summary: 'Ya tienes una suscripción activa', detail: 'Cancela la actual antes de crear otra.' });
+          this.loading = false
+          return;
+        }
+
+
+        this.productService.createDynamicSubscription(request).subscribe({
+          next: respuesta => {
+            // Verifica que la respuesta tenga un sessionId válido
+            if (!respuesta || !respuesta.sessionId) {
+              this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se recibió sessionId en la respuesta.' });
+              this.loading = false;
+              return;
+            }
+            this.stripePromise.then(stripe => {
+              if (stripe) {
+                stripe.redirectToCheckout({ sessionId: respuesta.sessionId })
+                  .then(result => {
+                    if (result.error) {
+                      this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error en redirectToCheckout' });
+                    }
+                  });
+              } else {
+                this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Stripe no se cargó correctamente.' });
+                this.loading = false;
+              }
+            });
+          },
+          error: err => {
+            this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al crear la suscripción' });
+            this.loading = false;
+          }
+        });
+      },
+      error: err => {
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo verificar tus suscripciones.' });
       }
     });
   }
 
 
   generarObjetoKitPersonalizado(): any {
-    // Ejemplo: construir un objeto basado en el kitSeleccionado
     const kitPersonalizado: any = {
       kitId: this.kitSeleccionado.id,
       nombre: this.kitSeleccionado.nombre,
       descripcion: this.kitSeleccionado.descripcion,
-      precioBase: this.kitSeleccionado.precio,
-      // Se espera que la propiedad "categorias" ya esté en kitSeleccionado, con cada categoría teniendo:
-      // { nombre, productoSeleccionado, cantidad } 
+      precioBase: this.precioBase,
       categorias: this.kitSeleccionado.categorias,
-      // Para extras, en lugar de un array de IDs, construye un array de objetos {id, cantidad}
       extras: this.productosExtras.map(prodId => ({
         id: prodId,
         cantidad: this.extrasCantidad[prodId] || 1
       })),
-      // Calcula el precio final: Precio base + suma de precios de extras multiplicada por sus cantidades
-      precioFinal: this.kitSeleccionado.precio // se actualizará luego
+      precioFinal: this.kitSeleccionado.precioBase
     };
-
-    // Calcular precio final de extras:
     let precioExtras = 0;
     kitPersonalizado.extras.forEach((extra: any) => {
-      const prodExtra = this.productosCatalogo.find((p: any) => p.id === extra.id);
+      const prodExtra = this.productos.find((p: any) => p.id === extra.id);
       if (prodExtra && prodExtra.precio) {
         precioExtras += prodExtra.precio * extra.cantidad;
       }
     });
     kitPersonalizado.precioFinal = kitPersonalizado.precioBase + precioExtras;
-
-    console.log("Objeto kit personalizado generado:", kitPersonalizado);
     return kitPersonalizado;
   }
 
 
 
-  guardarKitPersonalizado(): void {
-    console.log("Kit personalizado a guardar:", this.kit_personalizado);
+  guardarKitPersonalizado(sub: boolean): void {
+    this.trySuscribe();
+  }
+
+
+  mostrarConfirmacionPersonalizado: boolean = false;
+
+  comprarKit(obj: any) {
+
+    this.loading = true;
     this.purchasing = true;
+    let kit = obj;
+
+    const productosExtras = kit.extras.map((extra: { id: any; cantidad: any; }) => {
+      const producto = this.productos.find(p => p.id === extra.id);
+    
+      return {
+        id: extra.id,
+        name: producto?.nombre ?? 'Producto desconocido',
+        quantity: extra.cantidad
+      };
+    });
+    
+
+    const productosFinal = [...productosExtras];
+
+
+    const id = this.IdStripe.replace(/"/g, '');
+
+    const suscripcion = {
+      idUsuario: localStorage.getItem("Id"),
+      idUsuarioStripe: id,
+      esSuscripcion: false,
+      activa: true,
+      pagado: false,
+      nombreKit: "Compra Unica / Personalizada",
+      productosJson: JSON.stringify(productosFinal),
+      enviada: false,
+      fechaEnvio: null,
+      frecuenciaEnvio: "Compra Unica / Personalizada",
+      total: kit.precio ? kit.precio : kit.precioFinal,
+      fechaCreacion: new Date().toISOString(),
+      cancelada: false,
+      motivoCancelacion: null,
+      notasAdmin: ""
+    };
+
+
+    this.productService.RegistrarCompraSuscripcion(suscripcion).subscribe({
+      next: data => {
+        console.log("Compra/suscripción registrada correctamente:", data);
+      },
+      error: error => {
+        if (error.status === 400) {
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error de validación' });
+        }
+      },
+      complete: () => {
+      }
+    })
+
+    this.mostrar_kit_personalizado = false;
+    this.mostrarConfirmacionPersonalizado = true;
+
+
+
+
+
+  }
+
+  Comprando: boolean = false;
+  pagarCompraUnica() {
+
+    this.Comprando = true;
     this.authService.pay(this.kit_personalizado.precioFinal).subscribe({
       next: (response) => {
-        console.log("Redirigiendo a Stripe...", response);
-        this.purchasing = false;
-        // La redirección ya se intenta en el servicio, 
-        // pero podrías hacer algo adicional aquí si lo necesitas.
+        this.Comprando = false;
       },
       error: (err) => {
-        this.purchasing = false;
-        console.error("Error al crear la sesión de Stripe:", err);
+        this.Comprando = false;
       }
     });
 
-    console.log("paso");
   }
 
 
 
+
   recalcularPrecioFinal(): void {
-    // Iniciamos con el precio base del kit
-
     let precioFinal = this._precio || 0;
-    console.log(this._precio)
-
-
-    // Sumar el precio de cada extra (multiplicado por la cantidad seleccionada)
     if (this.kit_personalizado.extras && Array.isArray(this.kit_personalizado.extras)) {
       this.kit_personalizado.extras.forEach((extra: any) => {
-        // Buscar en el catálogo el producto extra con ese ID
         const prodExtra = this.productos.find((p: any) => p.id === extra.id);
-        console.log("extra log", prodExtra)
         if (prodExtra && prodExtra.precio) {
           precioFinal += prodExtra.precio * (extra.cantidad || 1);
         }
       });
     }
-
-    // Actualizar el precio final en el objeto kit_personalizado
     this.kit_personalizado.precioFinal = precioFinal;
-    console.log("Precio final recalculado:", precioFinal);
   }
 
 
   actualizarCantidadExtra(newValue: number, extra: any): void {
-    // Si el valor es menor que 1, forzamos a 1.
     if (newValue < 1) {
       extra.cantidad = 1;
       this.messageService.add({
@@ -633,35 +849,20 @@ export class NuestrosProductosComponent implements OnInit {
   regresar() {
     this.mostrarModal = true;
     this.mostrarConfirmacion = false;
-
   }
+
   PersonalizarKit(): void {
     // Creamos un objeto kitPersonalizado con valores predeterminados.
     this.kit_personalizado = {
       nombre: "Kit Personalizado",
       descripcion: "Kit personalizado de acuerdo a tus necesidades",
       precioBase: 0,
-      // categorias: [
-      //   // Ejemplo de categorías predefinidas; puedes ajustarlas o dejar que se creen dinámicamente:
-      //   { nombre: "Productos personales", productoSeleccionado: null, cantidad: 1 },
-      //   { nombre: "Dulces", productoSeleccionado: null, cantidad: 1 }
-      // ],
-      extras: [],               // Inicialmente vacío, se completará con objetos extras { id, cantidad }
-      precioFinal: 0            // Se recalculará sumando el precio base y los extras
+      extras: [],
+      precioFinal: 0
     };
-
-    // Si deseas precargar algunos valores, también puedes hacerlo:
-    // this.kitPersonalizado.nombre = "Kit Personalizado";
-    // this.kitPersonalizado.precioBase = 0;
-
-    // Reinicializamos la selección de extras (y sus cantidades, en caso de tener una variable adicional)
     this.productosExtras = [];
     this.extrasCantidad = {};
-
-    // Mostrar el modal de personalización para que el usuario ingrese o modifique la información
     this.mostrar_kit_personalizado = true;
-
-    console.log("Kit personalizado inicializado:", this.kit_personalizado);
   }
 
 

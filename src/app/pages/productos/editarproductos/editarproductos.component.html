@@ -65,7 +65,7 @@
       <label>Imágenes</label>
       <div class="image-grid">
         <div *ngFor="let img of selectedProduct.imagenesArray; let i = index" class="image-item">
-          <img [src]="'https://localhost:7027/' + img" alt="Imagen del producto" />
+          <img [src]="url + img" alt="Imagen del producto" />
           <p-button icon="pi pi-trash" class="delete-btn" [loading]="deletingImageIndex === i"
             (onClick)="deleteImage(i)"></p-button>
         </div>
@@ -75,7 +75,7 @@
 
     <div class="card">
       <p-fileupload #fileUpload name="file"
-        [url]="'https://localhost:7027/Images/AgregarImagenesProducto/' + selectedProduct.id"
+        [url]="url + 'Images/AgregarImagenesProducto/' + selectedProduct.id"
         (onSelect)="onSelect($event)" (onUpload)="onUpload($event)" (onError)="onError($event)"
         (onClear)="onClear($event)" [auto]="true" [multiple]="true" accept="image/*" maxFileSize="4000000" mode="basic">
         <ng-template #empty>

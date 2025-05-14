@@ -80,11 +80,11 @@ export class AuthService {
   constructor(private http: HttpClient) {
     const token = localStorage.getItem('token');
     const role = localStorage.getItem('role');
-  
+
     if (token) {
       this.authSubject.next(true);
     }
-  
+
     if (role) {
       this.roleSubject.next(role);
     }
@@ -109,11 +109,11 @@ export class AuthService {
       tap(async (response: LoginResponse) => {
         localStorage.setItem('token', response.token);
         this.authSubject.next(true);
-  
+
         // Llama a getRole después del login
         const headers = new HttpHeaders().set('Authorization', `Bearer ${response.token}`);
         const role = await this.http.get<string>(`${this.apiUrl}/claims`, { headers, responseType: 'text' as 'json' }).toPromise();
-  
+
         if (role) {
           localStorage.setItem('role', role);
           this.roleSubject.next(role);
@@ -121,7 +121,7 @@ export class AuthService {
       })
     );
   }
-  
+
 
   register(user: Register): Observable<RegisterResponse> {
     return this.http.post<RegisterResponse>(`${this.apiUrl}/register`, user);
@@ -154,32 +154,41 @@ export class AuthService {
   }
 
 
-  // Método que ejecuta el pago y devuelve un Observable
   pay(totalAmount: number): Observable<any> {
-    console.log(window.location.origin)
-    return new Observable(observer => {
-      this.http.post('https://localhost:7027/CheckOut/create-checkout-session', {
-        amount: totalAmount,
-        FrontendBaseUrl: window.location.origin,
-        CustomerId: "cus_S4Ri5XycZW4nfj"
-      }).subscribe(
-        async (response: any) => {
-          try {
-            const stripe = await loadStripe("pk_test_51Qnj1FIS6x1axh2CfvEciA2Lak4GhqSvxmpLvzzalnQzkwKBykXhXSgf9GNV1KNELG4HMIQALwgHKKfJfCi3VmVL00wN4lk28U");
-            await stripe?.redirectToCheckout({ sessionId: response.sessionId });
-
-            observer.next(response); // Notificar éxito
-            observer.complete();
-          } catch (error) {
-            observer.error(error); // Notificar error
-          }
-        },
-        error => {
-          observer.error(error);
-        }
-      );
-    });
+    const userId = localStorage.getItem("Id") ?? '';
+  
+    return this.getCustomerIdStripe(userId).pipe(
+      switchMap((customerStripeId) => {
+        return new Observable(observer => {
+          this.http.post(`${environment.apiUrl}CheckOut/create-checkout-session`, {
+            amount: totalAmount,
+            FrontendBaseUrl: window.location.origin,
+            CustomerId: customerStripeId  
+          }).subscribe(
+            async (response: any) => {
+              try {
+                const stripe = await loadStripe("pk_test_51Qnj1FIS6x1axh2CfvEciA2Lak4GhqSvxmpLvzzalnQzkwKBykXhXSgf9GNV1KNELG4HMIQALwgHKKfJfCi3VmVL00wN4lk28U");
+                await stripe?.redirectToCheckout({ sessionId: response.sessionId });
+  
+                observer.next(response);
+                observer.complete();
+              } catch (error) {
+                observer.error(error);
+              }
+            },
+            error => {
+              observer.error(error);
+            }
+          );
+        });
+      })
+    );
   }
+
+  getCustomerIdStripe(customerId: string): Observable<string> {
+    return this.http.get<string>(`${environment.apiUrl}CheckOut/GetStripeId/${customerId}`,  {responseType: 'text' as 'json' });
+  }
+
 
 
   setToken(token: string) {

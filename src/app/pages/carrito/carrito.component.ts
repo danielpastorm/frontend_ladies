@@ -98,7 +98,6 @@ export class CarritoComponent {
 
     await this.guardarPedido();
 
-
     this.auth.pay(total).subscribe({
       next: (response) => {
         console.log("Pago exitoso:", response)
@@ -122,36 +121,79 @@ export class CarritoComponent {
   guardarPedido() {
     const total = this.getTotal();
     // Aquí puedes generar el JSON para guardar en la nueva tabla
-    const pedidoJson = {
-      clienteId: this.userId, // reemplaza por el ID real del usuario
-      fecha: new Date().toISOString(),
-      total: total,
-      productos: this.cartItems.map(item => ({
-        name: item.name,
-        quantity: item.quantity,
-        subtotal: item.price * item.quantity
-      }))
-    };
+    // const pedidoJson = {
+    //   clienteId: this.userId, // reemplaza por el ID real del usuario
+    //   fecha: new Date().toISOString(),
+    //   total: total,
+    //   productos: this.cartItems.map(item => ({
+    //     name: item.name,
+    //     quantity: item.quantity,
+    //     subtotal: item.price * item.quantity
+    //   }))
+    // };
 
-    console.log(pedidoJson)
-    // Enviar al backend (si ya tienes un endpoint configurado)
-    this.cartService.guardarPedido(pedidoJson).subscribe({
-      next: res => console.log('Pedido guardado', res),
-      error: err => console.error('Error al guardar pedido', err)
-    });
+    // this.cartService.guardarPedido(pedidoJson).subscribe({
+    //   next: res => console.log('Pedido guardado', res),
+    //   error: err => console.error('Error al guardar pedido', err)
+    // });
+
+
+
+    const suscripcion = {
+      idUsuario: localStorage.getItem("Id"),
+      idUsuarioStripe: "undefined",
+      esSuscripcion: false,
+      activa: true,
+      pagado: false,
+      nombreKit: "Compra Unica / Personalizada",
+      productosJson: JSON.stringify(this.cartItems),
+      enviada: false,
+      fechaEnvio: null,
+      frecuenciaEnvio: "compra unica",
+      total: this.getTotal(),
+      fechaCreacion: new Date().toISOString(),
+      cancelada: false,
+      motivoCancelacion: null,
+      notasAdmin: ""
+    };
+    console.log("objeto para back", suscripcion);
+
+    this.cartService.RegistrarCompraSuscripcion(suscripcion).subscribe({
+      next: data => {
+        console.log("Compra/suscripción registrada correctamente:", data);
+
+      },
+      error: error => {
+        if (error.status === 400) {
+          console.error("Error de validación (BadRequest):", error.error);
+          // Aquí podrías mostrar un mensaje al usuario con error.error.msg u otra propiedad
+        } else {
+          console.error("Otro error:", error);
+        }
+      },
+      complete: () => {
+        console.log("Petición completada");
+      }
+    })
 
     if (this.mostrarModal == true) {   //significa que fue cancelado 
       //si fue cancelado entonces se borra el ultimo pedido que guardo el usuario en la base de datos
       console.log("entro a true");
-    }else{
+    } else {
       //si fue exitoso se vacia su carrito
       this.cartService.clearCart(localStorage.getItem("Id") ?? '').subscribe();
     }
 
   }
 
-  cancelarPedido(){
-    this.cartService.cancelarPedido(localStorage.getItem("Id") ?? '').subscribe();
+  cancelarPedido() {
+    this.cartService.cancelarPedido(localStorage.getItem("Id") ?? '').subscribe(
+      {
+        next: data => {
+
+        }
+      }
+    );
   }
 
 
