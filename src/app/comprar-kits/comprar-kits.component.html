@@ -1,0 +1,129 @@
+<form [formGroup]="kitForm" (ngSubmit)="guardarKit()">
+  <div class="p-fluid grid formgrid p-5 pl-5">
+
+    <!-- Nombre -->
+    <div class="field col-12 md:col-6">
+      <p-floatLabel>
+        <input pInputText id="nombre" formControlName="nombre" />
+        <label for="nombre">Nombre del kit</label>
+      </p-floatLabel>
+    </div>
+
+    <!-- Precio -->
+    <div class="field col-12 md:col-6">
+      <p-floatLabel>
+        <p-inputNumber inputId="precio" formControlName="precio" mode="decimal" [useGrouping]="false"></p-inputNumber>
+        <label for="precio">Precio</label>
+      </p-floatLabel>
+    </div>
+
+    <!-- Descuento -->
+    <div class="field col-12 md:col-6">
+      <p-floatLabel variant="on">
+        <p-inputNumber inputId="descuento" formControlName="descuento" mode="decimal"
+          [useGrouping]="false"></p-inputNumber>
+        <label for="descuento">Descuento (%)</label>
+      </p-floatLabel>
+    </div>
+
+    <!-- Descripción -->
+    <div class="field col-12">
+      <p-floatLabel>
+        <textarea pInputTextarea id="descripcion" rows="3" formControlName="descripcion"></textarea>
+        <label for="descripcion">Descripción</label>
+      </p-floatLabel>
+    </div>
+
+    <!-- Imágenes -->
+    <div class="col-12 md:col-12">
+      <p-card header="Cargar imagenes" class="mb-4">
+        <!-- Cargar Imagenes -->
+        <div class="col-12 md:col-12">
+          <p-card>
+            <div class="card">
+              <div class="card">
+                <p-toast></p-toast>
+                <p-fileupload name="file" [url]="imageUrl"
+                  (onUpload)="onUpload($event)" [auto]="true" [multiple]="false" accept="image/*" maxFileSize="3000000"
+                  mode="advanced">
+                  <ng-template #empty>
+                    <div>Arrastra y suelta archivos para subirlos.</div>
+                  </ng-template>
+                </p-fileupload>
+              </div>
+            </div>
+          </p-card>
+        </div>
+      </p-card>
+    </div>
+  </div>
+
+  <div class="p-fluid pl-4">
+    <!-- Productos Estáticos -->
+    <h4>Productos Estáticos</h4>
+    <div *ngFor="let prod of productosEstaticos; let i = index" class="p-grid mb-3">
+      <div class="col-12 md:col-5">
+        <p-dropdown [options]="catalogoProductos" optionValue="id" optionLabel="nombre" [(ngModel)]="prod.IdProducto"
+          [ngModelOptions]="{standalone: true}">
+        </p-dropdown>
+      </div>
+
+      <div class="col-12 md:col-4">
+        <p-inputNumber [(ngModel)]="prod.Cantidad" [ngModelOptions]="{standalone: true}" placeholder="Cantidad"
+          [useGrouping]="false">
+        </p-inputNumber>
+      </div>
+      <div class="col-12 md:col-3">
+        <p-button icon="pi pi-trash" severity="danger" (click)="eliminarEstatico(i)">
+        </p-button>
+      </div>
+    </div>
+
+    <p-button label="Agregar Producto Estático" icon="pi pi-plus" (click)="agregarEstatico()" class="mb-4"></p-button>
+
+    <!-- Opciones Selección -->
+    <!-- <h4 class="mt-4">Opciones de Selección</h4>
+    <div *ngFor="let opcion of opcionesSeleccion; let i = index" class="mb-4">
+      <div class="field">
+        <p-floatLabel>
+          <input pInputText id="titulo{{i}}" [(ngModel)]="opcion.titulo" [ngModelOptions]="{standalone: true}" />
+          <label for="titulo{{i}}">Título (Toallas, Tampones, etc.)</label>
+        </p-floatLabel>
+      </div>
+
+      <div *ngFor="let p of opcion.productos; let j = index" class="p-grid mb-2">
+        <div class="col-12 md:col-10">
+
+          <p-dropdown [options]="catalogoProductos" optionLabel="nombre" optionValue="id" [(ngModel)]="p.ProductoId"
+            [ngModelOptions]="{ standalone: true }">
+          </p-dropdown>
+
+
+
+          <p-inputNumber [(ngModel)]="p.Cantidad" [ngModelOptions]="{standalone: true}" placeholder="Cantidad"
+            [useGrouping]="false">
+          </p-inputNumber>
+
+        </div>
+        <div class="col-12 md:col-2">
+          <p-button icon="pi pi-trash" severity="danger" (click)="eliminarProductoOpcion(i, j)">
+          </p-button>
+        </div>
+      </div>
+
+      <p-button label="Agregar producto" icon="pi pi-plus" (click)="agregarProductoOpcion(i)" class="mb-3"></p-button>
+      <p-divider></p-divider>
+    </div>
+
+    <p-button label="Agregar grupo de selección" icon="pi pi-plus-circle" (click)="agregarOpcion()"
+      class="mb-4"></p-button>
+-->
+    <!-- Guardar -->
+    <div class="mt-4 text-center">
+      <p-button type="submit" label="Guardar Kit" icon="pi pi-save" class="p-button-success"></p-button>
+    </div>
+  </div> 
+
+
+  
+</form>

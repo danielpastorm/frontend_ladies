@@ -81,12 +81,13 @@ export class ComprasComponent implements OnInit {
 
   getSeverity(obj: any) {
     console.log(obj)
-    if (obj.cancelada) {
+    var estatus = obj.estatus;
+    if (estatus == "Cancelada") {
       return 'danger'
     }
-    else if (obj.esSuscripcion && obj.activa == obj.pagado) {
+    else if (estatus == "Entregada") {
       return 'success'
-    } else if (!obj.esSuscripcion && !obj.pagado) {
+    } else if (estatus == "Pendiente") {
       return 'warn'
     }
     return 'info'
@@ -94,8 +95,10 @@ export class ComprasComponent implements OnInit {
   }
 
   getText(obj: any) {
-    if (obj.cancelada) {
-      return 'Cancelada'
+    var estatus = obj.estatus;
+
+    if (estatus == "Pendiente") {
+      return 'Pendiente'
     }
     if (obj.esSuscripcion && obj.activa == obj.pagado) {
       return 'Activa y Pagada'

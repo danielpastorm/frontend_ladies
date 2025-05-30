@@ -32,6 +32,7 @@ import { AvatarModule } from 'primeng/avatar';
 import { OverlayBadgeModule } from 'primeng/overlaybadge';
 import { environment } from '../../../../environments/environment';
 import { retry } from 'rxjs';
+import { ChipModule } from 'primeng/chip';
 
 @Component({
   selector: 'app-nuestros-productos',
@@ -41,7 +42,7 @@ import { retry } from 'rxjs';
     ButtonModule, DrawerModule, InputGroupModule, InputGroupAddonModule, InputTextModule,
     InputNumberModule, FloatLabelModule, CarouselModule, ToggleButtonModule, DropdownModule,
     ProgressSpinnerModule, GalleriaModule, TableModule, RatingModule, CommonModule, DataViewModule,
-    CardModule, Dialog, AvatarModule, OverlayBadgeModule
+    CardModule, Dialog, AvatarModule, OverlayBadgeModule, ChipModule
   ],
   templateUrl: './nuestros-productos.component.html',
   styleUrl: './nuestros-productos.component.css',
@@ -100,7 +101,7 @@ export class NuestrosProductosComponent implements OnInit {
 
   kit_personalizado: any;
 
-  stripePromise: Promise<Stripe | null> = loadStripe('pk_test_51Qnj1FIS6x1axh2CfvEciA2Lak4GhqSvxmpLvzzalnQzkwKBykXhXSgf9GNV1KNELG4HMIQALwgHKKfJfCi3VmVL00wN4lk28U');
+  stripePromise: Promise<Stripe | null> = loadStripe('pk_live_51RRyFMACQSfwd7DO637d26RxjRuAkJT13ZJGKxVROLvmbFTP3tIUqtfBg191GBMwbnbZyVKvTp7NfLyWFoLYUPWn00gZBV7rQ2');
 
 
 
@@ -126,7 +127,7 @@ export class NuestrosProductosComponent implements OnInit {
 
   obtenerProductos() {
     this.productService.getProducts().subscribe(data => {
-      this.productos = data;
+      this.productos = data.filter(q => q.id != 5);
       console.log('Productos cargados:', this.productos);
     });
   }
@@ -143,6 +144,8 @@ export class NuestrosProductosComponent implements OnInit {
           categorias
         };
       });
+
+      
       this.cargando = false;
 
       console.log('Kits procesados:', this.kits);
@@ -485,18 +488,6 @@ export class NuestrosProductosComponent implements OnInit {
 
     kit = this.kitSeleccionado;
 
-
-    // const productosDeCategorias = kit.categorias.map((categoria: { idProductoSeleccionado: any; cantidadSeleccionada: any; }) => ({
-    //   id: categoria.idProductoSeleccionado,
-    //   cantidad: categoria.cantidadSeleccionada ?? 1 // Si no hay cantidadSeleccionada, pon 1
-    // }));
-
-    // const productosExtras = kit.extras.map((extra: { id: any; cantidad: any; }) => ({
-    //   id: extra.id,
-    //   cantidad: extra.cantidad
-    // }));
-
-    // const productosFinal = [...productosDeCategorias, ...productosExtras];
     const id = this.IdStripe.replace(/"/g, '');
 
     const suscripcion = {

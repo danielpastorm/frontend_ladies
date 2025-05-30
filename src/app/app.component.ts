@@ -327,6 +327,11 @@ export class AppComponent {
                         icon: 'pi pi-shopping-cart',
                         routerLink: ['GestionDePedidos']
                     }
+                    // {
+                    //     label: 'Categorias Y Marcas',
+                    //     icon: 'pi pi-shopping-cart',
+                    //     routerLink: ['editarCategorias']
+                    // }
                 ]
             });
         }

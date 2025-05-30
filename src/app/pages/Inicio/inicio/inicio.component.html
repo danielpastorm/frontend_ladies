@@ -1,22 +1,66 @@
-<div class="flex flex-column min-h-screen bg-pink-50 text-center text-gray-800">
+<div class="grid pt-3 pl-3">
+  <div class="col-12 p-0">
 
-  <!-- Hero Section -->
-  <section class="flex flex-column align-items-center justify-content-center text-center py-8 bg-pink-300 text-white">
-    <h1 class="text-4xl md:text-6xl font-bold mb-3">Bienvenida a Ladies First</h1>
-    <p class="text-lg md:text-2xl mb-5">Personaliza tu kit de cuidado íntimo con amor 💖</p>
+    <div class="flex flex-column md:flex-row imagenmodelo">
+      <!-- BLOQUE SLOGAN + BOTONES -->
+      <div class="flex flex-column align-items-center justify-content-center w-full md:w-6 
+              order-2 md:order-1 p-3 slogan-wrapper">
 
-    <!-- <p-button (click)="goToKits()" label="Explora las opciones que tenemos para ti" icon="pi pi-heart-fill"
-      styleClass="bg-white text-pink-500 font-bold px-5 py-3 border-none shadow-2" routerLink="/kits"></p-button> -->
+        <span class="slogan">Que no sea Andrés el que viene cada mes</span><br>
+        <span class="texto-secundario">deja que Ladies First te quite el estrés</span>
 
-    <p-button (click)="goToKits(true)" label="¡Compra de emergencia!" icon="pi pi-exclamation-triangle"
-      styleClass="bg-red-600 text-white font-bold px-5 py-3 border-none shadow-2">
-    </p-button>
+        <div class="flex flex-wrap justify-content-center gap-2 mt-4">
+          <p-button (click)="goToKits()" label="Ver Kits"></p-button>
+          <p-button (click)="scrollToFuncionamiento()" label="Cómo Funciona" severity="secondary"></p-button>
+         
+        </div>
 
-  </section>
+      </div>
 
-  <!-- Pasos para Personalizar -->
-  <section class="py-6 bg-white">
-    <h2 class="text-3xl font-bold mb-6">¿Cómo funciona?</h2>
+       <!-- Botón emergencia -->
+       <p-button (click)="goToKits(true)" label="¡Compra de emergencia!" icon="pi pi-exclamation-triangle"
+       styleClass="btn-redonda bg-red-600 text-white font-bold border-none shadow-3 mt-3" class="order-1"></p-button>
+
+      <!-- BLOQUE IMAGEN + EMERGENCIA -->
+      <div class="flex flex-column align-items-center justify-content-center w-full md:w-6 
+               order-1 md:order-2 p-3 imagen-wrapper">
+
+
+
+        <!-- Foto -->
+        <img [src]="imagenModelo" class="img-contain order-2" style="max-height: 400px;" alt="Modelo" />
+
+      </div>
+    </div>
+
+  </div>
+
+
+
+
+  <div class="col-12 bg-white">
+    <div class="text-start py-5 pl-4 border-round-sm">
+      <span class="titulo-seccion">Nuestros Kits</span>
+      <div class="grid">
+        <div class="col-12 md:col-4" *ngFor="let kit of kits">
+          <div class="card-producto text-center p-3 border-round-sm">
+
+            <img [src]="obtenerUrlImagen(kit.id)" class="img-producto mb-3" />
+
+            <div class="nombre-producto">{{kit.nombre}}</div>
+            <div class="precio-producto">{{kit.precio | currency:'MXN'}}</div>
+          </div>
+        </div>
+
+
+      </div>
+
+    </div>
+  </div>
+
+
+  <div class="col-12 bg-pink-100">
+    <h2 id="como-funciona" class="text-3xl font-bold mb-6 pl-4">¿Cómo funciona?</h2>
     <div class="grid justify-content-center text-center">
 
       <div class="col-12 md:col-4 mb-4">
@@ -50,11 +94,11 @@
       </div>
 
     </div>
-  </section>
+  </div>
 
-  <!-- Testimonios -->
-  <section class="py-6 bg-pink-50">
-    <h2 class="text-3xl font-bold mb-6">Lo que dicen nuestras clientas ✨</h2>
+
+  <div class="col-12 bg-white">
+    <h2 class="text-3xl font-bold mb-6 pl-4">Lo que dicen nuestras clientas ✨</h2>
     <div class="grid justify-content-center">
 
       <div class="col-12 md:col-4 p-3">
@@ -79,57 +123,37 @@
       </div>
 
     </div>
-  </section>
+  </div>
 
+  <div class="col-12 bg-pink-100 py-4">
+    <!-- Redes sociales -->
+    <div class="flex justify-content-center align-items-center gap-4 mb-3">
+      <!-- TikTok -->
+      <a href="https://www.tiktok.com/@ladiesfirstreal?_t=ZT-8wAqbiXmiD4&_r=1" target="_blank" class="red-social">
+        <svg class="icono-red" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+          <path
+            d="M19.589 6.686a4.793 4.793 0 0 1-3.77-4.245V2h-3.445v13.672a2.896 2.896 0 0 1-5.201 1.743l-.002-.001.002.001a2.895 2.895 0 0 1 3.183-4.51v-3.5a6.329 6.329 0 0 0-5.394 10.692 6.33 6.33 0 0 0 10.857-4.424V8.687a8.182 8.182 0 0 0 4.773 1.526V6.79a4.831 4.831 0 0 1-1.003-.104z" />
+        </svg>
+      </a>
 
-  <!-- CTA final -->
-  <section class="py-6 bg-pink-400 text-white">
-    <h2 class="text-3xl font-bold mb-3">¡No esperes más!</h2>
-    <p class="mb-4 text-lg">Diseña tu kit perfecto y cuida de ti como te lo mereces.</p>
-    <p-button label="Comienza ahora" icon="pi pi-shopping-cart"
-      styleClass="bg-white text-pink-600 font-bold px-5 py-3 border-none shadow-2" routerLink="/kits"></p-button>
-  </section>
+      <!-- Facebook -->
+      <a href="https://www.facebook.com/share/16ASbJ8jzH/?mibextid=wwXIfr" target="_blank" class="red-social">
+        <i class="pi pi-facebook icono-red"></i>
+      </a>
 
-
-
-  <section class="py-10 bg-pink-100 text-center w-full">
-    <div class="container mx-auto">
-      <h2 class="text-2xl font-bold text-pink-600 mb-4">Síguenos en nuestras redes sociales</h2>
-      <p class="text-pink-500 mb-6">Mantente conectada con nosotros para recibir ofertas y novedades exclusivas.</p>
-
-      <div class="flex justify-center w-full">
-        <div class="flex justify-center items-center gap-8 flex-wrap">
-          <a href="https://www.facebook.com/tu-pagina" target="_blank"
-            class="flex items-center justify-center text-pink-500 hover:text-pink-700 transition transform hover:scale-110">
-            <i class="pi pi-facebook text-4xl"></i>
-          </a>
-          <a href="https://www.instagram.com/tu-pagina" target="_blank"
-            class="flex items-center justify-center text-pink-500 hover:text-pink-700 transition transform hover:scale-110">
-            <i class="pi pi-instagram text-4xl"></i>
-          </a>
-          <a href="https://wa.me/tu-numero" target="_blank"
-            class="flex items-center justify-center text-pink-500 hover:text-pink-700 transition transform hover:scale-110">
-            <i class="pi pi-whatsapp text-4xl"></i>
-          </a>
-          <a href="https://twitter.com/tu-pagina" target="_blank"
-            class="flex items-center justify-center text-pink-500 hover:text-pink-700 transition transform hover:scale-110">
-            <i class="pi pi-twitter text-4xl"></i>
-          </a>
-        </div>
-      </div>
+      <!-- Instagram -->
+      <a href="https://www.instagram.com/ladiesfirstreal?igsh=NGF1cTV5NzNqbm9m&utm_source=qr" target="_blank"
+        class="red-social">
+        <i class="pi pi-instagram icono-red"></i>
+      </a>
     </div>
-  </section>
 
+    <!-- Política y Términos -->
+    <div class="text-center text-sm text-gray-700">
+      <a href="/politica-privacidad" class="text-underline mx-2">Política de Privacidad</a> |
+      <a href="/terminos-condiciones" class="text-underline mx-2">Términos y Condiciones</a>
+    </div>
+  </div>
 
-
-
-
-
-
-
-  <!-- Footer -->
-  <footer class="bg-white py-4 text-gray-600">
-    <p>&copy; 2025 Ladies First. Todos los derechos reservados.</p>
-  </footer>
 
 </div>

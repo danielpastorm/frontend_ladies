@@ -17,6 +17,8 @@ import { MiperfilComponent } from './pages/perfil/miperfil/miperfil.component';
 import { SuccessComponent } from './pages/success/success.component';
 import { CancelComponent } from './pages/cancel/cancel.component';
 import { ComprasAdminComponent } from './pages/compras-admin/compras-admin.component';
+import { ComprarKitsComponent } from './comprar-kits/comprar-kits.component';
+import { AdministrarCategoriaMarcaComponent } from './administrar-categoria-marca/administrar-categoria-marca.component';
 
 export const routes: Routes = [
     {
@@ -25,14 +27,20 @@ export const routes: Routes = [
         title: 'Ladies First'
     },
 
+
     {
         path: 'comprar-productos',
         component: ComprarProductosComponent,
         title: 'Nuestros Productos'
     },
     {
+        path: 'editarCategorias',
+        component: AdministrarCategoriaMarcaComponent,
+        title: 'Admin'
+    },
+    {
         path: 'Kits',
-        component: NuestrosProductosComponent,
+        component: AdministrarCategoriaMarcaComponent, // aqui va NuestrosProductosComponent
         title: 'Nuestros Kits'
 
 
@@ -69,7 +77,7 @@ export const routes: Routes = [
     },
     {
         path: 'crearKit',
-        component: CrearkitComponent,
+        component: ComprarKitsComponent, //CrearkitComponent
         title: "Agregar nuevo Kit"
 
     },

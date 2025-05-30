@@ -24,11 +24,12 @@ import { FloatLabelModule } from 'primeng/floatlabel';
 import { CarouselModule } from 'primeng/carousel';
 import { DataView } from 'primeng/dataview';
 import { Tag } from 'primeng/tag';
-import { Select } from 'primeng/select';
+import { Select, SelectModule } from 'primeng/select';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 
 import { ToggleButtonModule } from 'primeng/togglebutton';
 import { Button } from 'primeng/button';
+
 
 import { PrimeNG } from 'primeng/config';
 import { FileUpload, FileUploadEvent } from 'primeng/fileupload';
@@ -43,9 +44,21 @@ import { FloatLabel } from 'primeng/floatlabel';
 import { AnyCatcher } from 'rxjs/internal/AnyCatcher';
 import { ConfirmationService } from 'primeng/api';
 import { environment } from '../../../../environments/environment';
+import { KitDto, OpcionSeleccion, ProductoEstatico } from '../../../Data/KitsModel';
+import { MultiSelectItem, MultiSelectModule } from 'primeng/multiselect';
+import { Image } from 'primeng/image';
+import { DividerModule } from 'primeng/divider';
+import { ConfirmPopupModule } from 'primeng/confirmpopup';
+
 interface UploadEvent {
   originalEvent: Event;
   files: File[];
+}
+
+interface CategoriaEnKit {
+  nombre: string;
+  idProductos: number[];
+  idProductoSeleccionado: number | null;
 }
 
 
@@ -53,26 +66,268 @@ interface UploadEvent {
   selector: 'app-editarkits',
   imports: [ButtonModule, RippleModule, ToastModule, TableModule, CommonModule, DrawerModule, FormsModule, Button,
     InputGroupModule, InputGroupAddonModule, InputTextModule, InputNumberModule, FloatLabelModule, ToggleButtonModule,
-    FileUpload, DropdownModule, ProgressSpinnerModule,
-    BadgeModule, ReactiveFormsModule, TextareaModule, FloatLabel,
+    FileUpload, DropdownModule, ProgressSpinnerModule, Image, DividerModule, ConfirmPopupModule,
+    BadgeModule, ReactiveFormsModule, TextareaModule, FloatLabel, MultiSelectModule, SelectModule,
     DialogModule, Card, CarouselModule],
   providers: [ConfirmationService],
   templateUrl: './editarkits.component.html',
   styleUrl: './editarkits.component.css'
 })
 export class EditarkitsComponent {
-  apiUrl:string = environment.apiUrl;
-  kits!: any;
-  cargando: boolean = false;
-  abrirModal: boolean = false;
-  miFormulario!: FormGroup;
-  kitEditando: any = null;
-  productos!: any;
+  productos!: any[];
+  selectedExtraProducts: any | undefined;
   categoria: string = "";
-  idKit: number = 0;
+
+  imagenesArray: string[] = [];
+  apiurl: string = environment.apiUrl;
+  imageUploadsUrl: string = this.apiurl + 'Images/AgregarImagenesKit/'
+
+
+
+  apiUrl = environment.apiUrl;
+  kits: KitDto[] = [];
+  visible: boolean = false;
+  kitEnEdicion: any;
+
+  categoriaSeleccionada: any = null;
+  productoParaCategoria: any = null;
+  cantidad: any = 0;
+
+
+
+  constructor(
+    private fb: FormBuilder,
+    private productService: ProductService,
+    private messageService: MessageService,
+    private confirmationService: ConfirmationService
+  ) { }
+
+  ngOnInit(): void {
+    this.cargarKits();
+
+
+    this.productService.getProducts().subscribe({
+      next: data => this.productos = data.map(prod => ({
+        id: prod.id,
+        precio: prod.precio,
+        name: prod.nombre,
+        code: prod.id
+      }))
+    })
+
+  }
+
+  cargarKits() {
+    this.productService.getKitsNuevo().subscribe((data) => {
+      this.kits = data.map(kit => ({
+        ...kit,
+        imagenesArray: kit.imagenes
+          ? kit.imagenes.split(';').map(s => s.trim())
+          : []
+      }));
+      console.log(this.kits);
+    });
+  }
+
+
+  agregarProductoACategoriaSeleccionada() {
+    if (!this.categoriaSeleccionada || !this.productoParaCategoria) {
+      return;
+    }
+
+    const nombreCategoria = this.categoriaSeleccionada.label;
+    const idProducto = this.productoParaCategoria.value;
+    const nombreProducto = this.productoParaCategoria.label
+
+    const cantidad = this.cantidad;
+
+    const categoriaExistente = this.kitJson.categorias.find((cat: { nombre: any; }) => cat.nombre === nombreCategoria);
+
+    if (categoriaExistente) {
+      const productoExistente = categoriaExistente.productos.find((p: { id: any; }) => p.id === idProducto);
+
+      if (productoExistente) {
+        productoExistente.cantidad += 1; // aumenta cantidad
+      } else {
+        categoriaExistente.productos.push({ id: idProducto, cantidad });
+      }
+    } else {
+      this.kitJson.categorias.push({
+        nombre: nombreCategoria,
+        productos: [{ id: idProducto, cantidad }],
+        idProductoSeleccionado: null
+      });
+    }
+
+    this.categoriaSeleccionada = null;
+    this.productoParaCategoria = null;
+    this.cantidad = null;
+
+    console.log('Kit actualizado:', this.kitJson);
+  }
+
+
+
+  guardarCategoria() {
+    const cat: Categorias = {
+      Id: 0,
+      categoria: this.categoria
+    }
+    console.log(cat)
+    this.productService.newCategoria(cat).subscribe({
+      next: data => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Éxito',
+          detail: 'Categoria creada correctamente'
+        });
+      },
+      error: data => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Error',
+          detail: 'Intenta nuevamente'
+        });
+      }
+    })
+  }
+
+
+  categorias_list: Categorias[] = [];
+  categoriasDropdown: { label: string; value: string }[] = [];
+  categoriaSeleccionadaId: number | null = null;
+
+
+  obtenerCategorias() {
+    this.productService.getCategorias().subscribe({
+      next: data => {
+        this.categoriasDropdown = data.map(cat => ({
+          label: cat.categoria,
+          value: cat.Id
+        }));
+      },
+      error: err => {
+        console.log("Error al obetner las categorias");
+      }
+    })
+  }
 
   productosDropdown: { label: string; value: number }[] = [];
 
+
+
+  categorias: CategoriaEnKit[] = [];
+
+  updateCategoriasDropdown() {
+    this.categoriasDropdown = this.categorias.map(cat => ({
+      label: cat.nombre,
+      value: cat.nombre
+    }));
+  }
+
+
+  updateProductosDropdown() {
+    this.productosDropdown = this.productos.map(prod => ({
+      label: prod.nombre,
+      value: prod.id!  // 
+    }));
+
+  }
+
+
+
+
+  editarKit(id: number) {
+    this.kitEnEdicion = [];
+    // 1) Buscas el kit original
+    const original = this.kits.find(k => k.id === id);
+    if (!original) return;
+
+    // 2) Clonas (deep copy) para no mutar la lista
+    this.kitEnEdicion = {
+      ...original,
+    };
+    this.visible = true;
+  }
+
+
+
+
+
+  // 1) Productos estáticos
+  removeProductoEstatico(i: number) {
+    this.kitEnEdicion.productosEstaticos.splice(i, 1);
+  }
+  addProductoEstatico() {
+    this.kitEnEdicion.productosEstaticos.push({
+      id: 0,
+      kitId: this.kitEnEdicion.id,
+      productoId: null,
+      cantidad: 1
+    });
+  }
+
+  // 2) Opciones de selección
+  removeOpcionSeleccion(j: number) {
+    this.kitEnEdicion.opcionesSeleccion.splice(j, 1);
+  }
+  addOpcionSeleccion() {
+    this.kitEnEdicion.opcionesSeleccion.push({
+      id: 0,
+      kitId: this.kitEnEdicion.id,
+      titulo: '',
+      orden: this.kitEnEdicion.opcionesSeleccion.length + 1,
+      productos: []
+    });
+  }
+
+  removeProductoSeleccion(j: number, k: number) {
+    this.kitEnEdicion.opcionesSeleccion[j].productos.splice(k, 1);
+  }
+  addProductoSeleccion(j: number) {
+    this.kitEnEdicion.opcionesSeleccion[j].productos.push({
+      id: 0,
+      opcionSeleccionId: this.kitEnEdicion.opcionesSeleccion[j].id,
+      productoId: null,
+      cantidad: 1
+    });
+  }
+
+  // 3) Imágenes
+  imgUrl(img: string, id: number) {
+    return `${this.apiUrl}/uploads/kit_${id}/${img}`; // ajusta según tu endpoint
+  }
+  removeImage(idx: number) {
+    this.productService.deleteImage(this.kitEnEdicion.id, this.kitEnEdicion.imagenesArray[idx], true).subscribe({
+      next: () => {
+        this.kitEnEdicion.imagenesArray.splice(idx, 1);
+        this.messageService.add({ severity: 'info', summary: 'Confirmado', detail: 'Se elimino la imagen', life: 3000 });
+
+
+      }
+    });
+  }
+
+
+  onImageUpload(event: any) {
+    // tu lógica: subes al servidor, obtienes nombre y:
+    event.files.forEach((file: File) => {
+      // tras subir...
+      const nuevoNombre = "";
+      this.kitEnEdicion.imagenesArray.push(nuevoNombre);
+    });
+  }
+
+  // 4) Guardar cambios
+  saveKit() {
+    // arma el payload con kitEnEdicion,
+    // llama a tu productService.updateKit(this.kitEnEdicion) y cierra dialog
+  }
+
+
+
+
+  //OPCIONES DE LA CREACION DE KITS
 
 
   kitJson: any = {
@@ -80,294 +335,150 @@ export class EditarkitsComponent {
     extras: [],
     precioFinal: null
   };
+  guardarKit() {
+    this.kitEnEdicion.categoriasJson = JSON.stringify(this.kitJson);
+    console.log(this.kitEnEdicion);
 
-
-  constructor(private fb: FormBuilder, private messageService: MessageService, private productService: ProductService, private router: Router
-    , private config: PrimeNG, private confirmationService: ConfirmationService
-  ) { }
-
-  ngOnInit(): void {
-    this.cargando = true;
-    this.productService.getKits().subscribe({
-      next: data => {
-        this.kits = data;
+    this.productService.updateKit(this.kitEnEdicion).subscribe({
+      next: () => {
+        this.messageService.add({severity: 'info', summary: 'Kit actualizado', life: 3000})
       }
     })
 
-    this.productService.getProducts().subscribe({
-      next: data => {
-        this.productos = data;
-        this.productosDropdown = data.map(prod => ({
-          label: prod.nombre,
-          value: prod.id
-        }));
-      }
-    })
+  }
 
+  calcularDescuento() {
+    if (this.kitEnEdicion.descuento > 100) this.kitEnEdicion.descuento = 100;
+    if (this.kitEnEdicion.descuento < 0) this.kitEnEdicion.descuento = 0;
 
-    this.cargando = false;
-
-
-
-    this.miFormulario = this.fb.group({
-      id: [null],
-      nombre: ['', Validators.required],
-      descripcion: [''],
-      imagenes: [''],
-      precio: [0, [Validators.required, Validators.min(0)]],
-      disponible: [false],
-      descuento: [0],
-      precioConDescuento: [0]
-    });
-
+    this.kitEnEdicion.precioConDescuento = this.kitEnEdicion.precio - (this.kitEnEdicion.precio * (this.kitEnEdicion.descuento / 100))
 
   }
 
 
-  editarKit(kit: any) {
-    this.kitEditando = kit;
-    this.idKit = kit.id;
-    this.miFormulario.patchValue({
-      id: kit.id,
-      nombre: kit.nombre,
-      descripcion: kit.descripcion,
-      imagenes: kit.imagenes,
-      precio: kit.precio,
-      disponible: kit.disponible,
-      descuento: kit.descuento,
-      precioConDescuento: kit.precioConDescuento
-    });
-
-    this.kitJson = JSON.parse(kit.categoriasJson || '{"categorias":[],"extras":[],"precioFinal":null}');
-
-    this.abrirModal = true;
-  }
-
-
-
-  onSubmit(): void {
-    if (this.miFormulario.valid) {
-      const nuevoNombre = this.miFormulario.value.nombre;
-      const nuevaDescripcion = this.miFormulario.value.descripcion;
-      const nuevoPrecio = this.miFormulario.value.precio;
-      const nuevasCategorias = this.miFormulario.value.categoriasJson;
-      const nuevoDisponible = this.miFormulario.value.disponible;
-      const descuento = this.miFormulario.value.descuento;
-
-    
-
-      // Actualizamos directamente el kit en memoria
-      this.kitEditando.nombre = nuevoNombre;
-      this.kitEditando.descripcion = nuevaDescripcion;
-      this.kitEditando.precio = nuevoPrecio;
-      this.kitEditando.categoriasJson = JSON.stringify(this.kitJson);
-      this.kitEditando.disponible = nuevoDisponible;
-      if(descuento != 0){
-        this.kitEditando.descuento = descuento;
-        this.kitEditando.precioConDescuento = nuevoPrecio - (nuevoPrecio * (descuento / 100));
-      }
-      else{
-        this.kitEditando.descuento = 0;
-        this.kitEditando.preciocondescuento = 0;
-      }
-
-      console.log(this.kitEditando.descuento)
-
-      // Aquí puedes mandar al backend si lo deseas con productService.updateKit()
-      this.productService.updateKit(this.kitEditando).subscribe({
-        next: data => {
-          this.messageService.add({
-            severity: 'success',
-            summary: 'Éxito',
-            detail: 'Kit editado correctamente'
-          });
-        },
-        error: err => {
-          this.messageService.add({
-            severity: 'warn',
-            summary: 'Error',
-            detail: 'Intenta nuevamente'
-          });
-        }
-      })
-      console.log('Kit actualizado:', this.kitEditando);
-
-      this.abrirModal = false;
-    } else {
-      this.miFormulario.markAllAsTouched();
-    }
-  }
 
 
 
   getNombreProducto(id: number): string {
-    const producto = this.productos.find((p: { id: number; }) => p.id === id);
-    return producto ? producto.nombre : `ID: ${id}`;
+    const p = this.productos.find(p => p.id === id);
+    return p?.nombre || 'Producto no encontrado';
   }
 
-  // Agregar producto
-  agregarProductoACategoria(categoria: any) {
-    const productoId = categoria.productoSeleccionado?.value;
-    const cantidad = categoria.cantidadSeleccionada;
-
-    if (!productoId || !cantidad || cantidad <= 0) return;
-
-    const existe = categoria.productos.find((p: any) => p.id === productoId);
-    if (existe) {
-      existe.cantidad += cantidad;
-    } else {
-      categoria.productos.push({ id: productoId, cantidad });
+  getImagenProducto(id: number): string {
+    // Buscar el producto que tenga el id dado en this.productos
+    const producto = this.productos.find(p => p.id === id);
+    if (producto && producto.imagenes) {
+      // Se asume que 'imagenes' es un string con los nombres de archivo separados por ';'
+      const imagenesArray = producto.imagenes.split(';').filter((img: { trim: () => { (): any; new(): any; length: number; }; }) => img.trim().length > 0);
+      if (imagenesArray.length > 0) {
+        // Toma la primera imagen
+        const primeraImagen = imagenesArray[0].trim();
+        // Puedes codificar la URL si es necesario con encodeURI
+        return `${this.apiUrl}uploads/${id}/${encodeURI(primeraImagen)}`;
+      }
     }
-
-    // Limpia selección
-    categoria.productoSeleccionado = null;
-    categoria.cantidadSeleccionada = null;
+    // Retorna una imagen por defecto si no se encuentra
+    return `${this.apiUrl}/uploads/default-placeholder.png`;
   }
 
-  // Eliminar producto
   eliminarProductoDeCategoria(nombreCategoria: string, idProducto: number) {
-    const categoria = this.kitJson.categorias.find((c: any) => c.nombre === nombreCategoria);
+    const categoria = this.kitJson.categorias.find((c: { nombre: string; }) => c.nombre === nombreCategoria);
+
     if (!categoria) return;
 
-    categoria.productos = categoria.productos.filter((p: any) => p.id !== idProducto);
+    categoria.productos = categoria.productos.filter((p: { id: number; }) => p.id !== idProducto);
 
-    // Si ya no tiene productos, puedes eliminar la categoría si lo deseas
-    // this.kitJson.categorias = this.kitJson.categorias.filter((c: any) => c.nombre !== nombreCategoria);
+    // Si ya no hay productos, también podrías eliminar toda la categoría (opcional)
+    if (categoria.productos.length === 0) {
+      this.kitJson.categorias = this.kitJson.categorias.filter((c: { nombre: string; }) => c.nombre !== nombreCategoria);
+    }
+
+    console.log('Producto eliminado. Kit actualizado:', this.kitJson);
   }
 
 
-  crearYAgregarCategoria() {
-    const cat: Categorias = {
-      Id: 0,
-      categoria: this.categoria
-    };
+  uploadedFiles: any[] = [];
 
-    this.productService.newCategoria(cat).subscribe({
-      next: (data) => {
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Éxito',
-          detail: 'Categoría creada correctamente'
-        });
+  onUpload(event: FileUploadEvent) {
+    for (let file of event.files) {
+      this.uploadedFiles.push(file);
+    }
+    this.messageService.add({ severity: 'info', summary: 'File Uploaded', detail: '' });
+    // (2) vuelvo a traer la lista de kits, y sólo cuando llegue ejecuto editarKit
+    this.productService.getKitsNuevo().subscribe(data => {
+      this.kits = data.map(kit => ({
+        ...kit,
+        imagenesArray: kit.imagenes
+          ? kit.imagenes.split(';').map(s => s.trim())
+          : []
+      }));
+      // (3) ahora sí, reasigno el kitEnEdicion con la info actualizada:
+      this.editarKit(this.kitEnEdicion.id);
+    });
 
-        // Agregar la categoría también al kitJson directamente
-        this.kitJson.categorias.push({
-          nombre: this.categoria,
-          productos: [],
-          idProductoSeleccionado: null
-        });
+  }
 
-        // Resetear input
-        this.categoria = '';
 
+  confirm2(event: Event, id: number) {
+    this.confirmationService.confirm({
+      target: event.target as EventTarget,
+      message: 'Seguro que quieres eliminar este kit?',
+      icon: 'pi pi-info-circle',
+      rejectButtonProps: {
+        label: 'Cancelar',
+        severity: 'secondary',
+        outlined: true
       },
-      error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'Intenta nuevamente'
-        });
-      }
-    });
-  }
-
-
-  eliminarCategoriaDelKit(index: number) {
-    this.kitJson.categorias.splice(index, 1);
-
-    this.messageService.add({
-      severity: 'info',
-      summary: 'Categoría eliminada',
-      detail: 'Se quitó correctamente del kit'
-    });
-  }
-
-
-  getImagenesArray(): string[] {
-    if (!this.kitEditando?.imagenes) return [];
-
-    return this.kitEditando.imagenes
-      .split(';')
-      .map((img: string) => `${this.apiUrl}uploads/kit_${this.kitEditando.id}/${img.trim()}`);
-  }
-
-
-  imagenSubida(event: any) {
-    // Puedes refrescar la lista de imágenes desde el backend si lo deseas
-    this.messageService.add({
-      severity: 'success',
-      summary: 'Imagen subida',
-      detail: 'Se agregó correctamente'
-    });
-
-    this.actualizarKitDesdeBackend(this.kitEditando.id);
-  }
-
-  loading: boolean = false;
-  eliminarImagen(urlImagenCompleta: string) {
-    const imageName = urlImagenCompleta.split('/').pop() ?? '';
-    const kitId = this.kitEditando.id;
-    this.loading = true;
-    this.productService.deleteImage(kitId, imageName, true).subscribe({
-      next: () => {
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Imagen eliminada',
-          detail: 'La imagen se eliminó correctamente'
-        });
-        this.actualizarKitDesdeBackend(kitId);
-        this.loading = false;
+      acceptButtonProps: {
+        label: 'Eliminar',
+        severity: 'danger'
       },
-      error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'No se pudo eliminar la imagen'
+      accept: () => {
+        this.productService.deleteProducto(id).subscribe({
+          next: data => {
+            this.cargarKits();
+          }
         });
-        this.loading = false;
+        this.messageService.add({ severity: 'info', summary: 'Confirmado', detail: 'Se elimino el kit', life: 3000 });
+      },
+      reject: () => {
+        this.messageService.add({ severity: 'error', summary: 'Rechazado', detail: 'No se modifico nada', life: 3000 });
       }
     });
   }
 
 
 
-  actualizarKitDesdeBackend(id: number) {
-    this.productService.getKitById(id).subscribe({
-      next: (kit) => {
+  //productos estaticos
 
-        this.kitEditando = kit;
+  productosEstaticos: ProductoEstatico[] = [];
+  opcionesSeleccion: OpcionSeleccion[] = [];
+  catalogoProductos: any[] = []; // cargar con tus productos desde la API
 
-        // Actualiza el formulario si estás usando Reactive Forms
-        this.miFormulario.patchValue({
-          nombre: this.kitEditando.nombre,
-          descripcion: this.kitEditando.descripcion,
-          precio: this.kitEditando.precio,
-          disponible: this.kitEditando.disponible
-        });
 
-        // Reconstruye JSON de categorías si lo necesitas
-        this.kitJson = this.kitEditando.categoriasJson
-          ? JSON.parse(this.kitEditando.categoriasJson)
-          : { categorias: [], extras: [], precioFinal: null };
-      },
-      error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error al cargar kit',
-          detail: 'No se pudo obtener la información actualizada del kit'
-        });
-      }
+  agregarEstatico() {
+    this.productosEstaticos.push({ IdProducto: 0, Cantidad: 1 });
+  }
+
+  eliminarEstatico(index: number) {
+    this.productosEstaticos.splice(index, 1);
+  }
+
+  agregarOpcion() {
+    this.opcionesSeleccion.push({
+      titulo: '',
+      orden: this.opcionesSeleccion.length + 1,
+      productos: []
     });
   }
 
-  calcularDescuento() {
-    if (this.kitEditando.descuento > 100) this.kitEditando.descuento = 100;
-    if (this.kitEditando.descuento < 0) this.kitEditando.descuento = 0;
-
-    this.kitEditando.preciocondescuento = this.kitEditando.precio - (this.kitEditando.precio * (this.kitEditando.descuento / 100) )
-
+  agregarProductoOpcion(i: number) {
+    this.opcionesSeleccion[i].productos.push({ ProductoId: 0, Cantidad: 1 });
   }
 
+  eliminarProductoOpcion(i: number, j: number) {
+    this.opcionesSeleccion[i].productos.splice(j, 1);
+  }
 
 
 

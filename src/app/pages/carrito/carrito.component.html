@@ -19,12 +19,12 @@
     </ng-template>
     <ng-template pTemplate="body" let-product>
       <tr>
-        <td>{{ product.name }} - {{ product.price | currency:'MXN' }}</td>
+        <td>{{ product.nombre }} - {{ product.precio | currency:'MXN' }}</td>
         <td>
-          <p-inputNumber [(ngModel)]="product.quantity" [min]="1"
-            (ngModelChange)="updateQuantity(product, product.quantity)"></p-inputNumber>
+          <p-inputNumber [(ngModel)]="product.cantidad" [min]="1"
+            (ngModelChange)="updateQuantity(product, product.cantidad)"></p-inputNumber>
         </td>
-        <td>{{ product.price * product.quantity | currency:'MXN' }}</td>
+        <td>{{ product.precio * product.cantidad | currency:'MXN' }}</td>
         <td>
           <p-button icon="pi pi-trash" severity="danger" (click)="removeProduct(product)"></p-button>
         </td>

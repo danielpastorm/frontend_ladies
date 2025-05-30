@@ -1,173 +1,188 @@
-<div *ngIf="cargando" class="loading-overlay">
-    <p-progressSpinner></p-progressSpinner>
-</div>
+<div class="flex justify-content-start flex-wrap gap-4">
+    <div *ngFor="let kit of kits" class="p-2">
+        <p-card [header]="kit.nombre" class="text-center">
 
+            <div class="card flex justify-center gap-2">
+                <p-toast />
+                <p-confirmpopup />
+                <p-button label="Editar" (onClick)="editarKit(kit.id)" rounded="true" />
+                <p-button (onClick)="confirm2($event, kit.id)" label="Eliminar" rounded="true" severity="danger"
+                    [outlined]="true" />
 
-<div class="grid" *ngIf="kits != undefined">
-    <div class="col-12 md:col-3" *ngFor="let kit of kits">
-        <p-card 
-  [header]="kit.nombre" 
-  [subheader]="kit.descripcion" 
-  class="text-center"
-  [ngStyle]="{
-    '--p-card-background': kit.disponible ? '#d4edda' : '#f8d7da',
-    '--p-card-text-color': kit.disponible ? '#155724' : '#721c24'
-  }">
-  <button pButton label="Editar Kit" class="mt-3" (click)="editarKit(kit)"></button>
-</p-card>
-
+            </div>
+        </p-card>
     </div>
 </div>
 
 
-<div class="card flex justify-center">
-    <p-dialog header="Editar Kit" [modal]="true" [(visible)]="abrirModal" [style]="{ width: '50rem' }"
-        [breakpoints]="{ '1199px': '75vw', '575px': '90vw' }">
+
+<p-dialog header="Editar" *ngIf="kitEnEdicion" [(visible)]="visible" [modal]="true"
+    [breakpoints]="{ '1199px': '75vw', '575px': '90vw' }" [style]="{ width: '50vw' }" [draggable]="false"
+    [resizable]="false">
 
 
-        <form [formGroup]="miFormulario" (ngSubmit)="onSubmit()" class="grid p-fluid">
-            <!-- Columna completa en móviles, mitad en pantallas md -->
-            <div class="col-12 md:col-6">
-                <p-floatLabel variant="in">
-                    <input pInputText id="nombre" formControlName="nombre" />
-                    <label for="nombre">Nombre del kit</label>
-                </p-floatLabel>
-                <small *ngIf="miFormulario.get('nombre')?.touched && miFormulario.get('nombre')?.invalid"
-                    class="p-error">
-                    El nombre es obligatorio.
-                </small>
+    <div class="grid">
+
+        <div class="col-12 md:col-12">
+            <!-- Botón para asociar producto a categoría -->
+            <div class="flex justify-content-center pt-2">
+                <p-button label="Guardar Kit" (click)="guardarKit()" icon="pi pi-plus" />
             </div>
 
+            <p-card header="Detalles del Kit" class="mb-4">
+                <p-floatLabel variant="on">
+                    <input pInputText type="text" [(ngModel)]="kitEnEdicion.nombre" name="nombre" id="nombre" required
+                        class="w-full" />
+                    <label for="nombre">Nombre</label>
+                </p-floatLabel>
 
-            <div class="col-12 md:col-6">
-
-                <p-floatLabel variant="in">
-                    <textarea rows="5" cols="30" id="descripcion" style="resize: none" class="h-full" pTextarea
-                        formControlName="descripcion"></textarea>
+                <p-floatLabel variant="on" class="mt-4">
+                    <input pInputText type="text" [(ngModel)]="kitEnEdicion.descripcion" name="descripcion"
+                        id="descripcion" required class="w-full" />
                     <label for="descripcion">Descripción</label>
                 </p-floatLabel>
 
-            </div>
+                <p-floatLabel variant="on" class="mt-4">
+                    <p-inputnumber [(ngModel)]="kitEnEdicion.precio" [showButtons]="true" inputId="stacked"
+                        mode="currency" currency="MXN" />
 
-            <div class="col-12 md:col-6">
-                <p-floatLabel>
-                    <input pInputText id="precio" type="number" formControlName="precio" />
-                    <label for="precio">Precio</label>
+                    <label>Precio</label>
                 </p-floatLabel>
-            </div>
 
-            <div class="col-12 md:col-6">
-                <p-floatLabel  variant="on">
-                    <p-inputnumber [max]="100" inputId="integeronly" suffix="%" formControlName="descuento" />
+                <p-floatLabel variant="on" class="mt-4">
+                    <p-inputnumber (onInput)="calcularDescuento()" [max]="100" inputId="integeronly" suffix="%"
+                        [(ngModel)]="kitEnEdicion.descuento" />
                     <label>Descuento</label>
                 </p-floatLabel>
-            </div>
 
-        
+                <p-floatLabel variant="on" class="mt-4">
+                    <p-inputnumber [(ngModel)]="kitEnEdicion.precioConDescuento" [disabled]="true" inputId="stacked"
+                        mode="currency" currency="MXN" />
 
-            <div class="col-12">
-                <label for="disponible">¿Disponible?</label>
-                <p-toggleButton formControlName="disponible" onLabel="Sí" offLabel="No"
-                    styleClass="w-full"></p-toggleButton>
-            </div>
+                    <label>Precio Con Descuento</label>
+                </p-floatLabel>
 
-
-
-
-            <div class="col-12">
-                <button pButton type="submit" label="Guardar"></button>
-            </div>
-        </form>
-
-
-        <div class="col-12">
-            <p-card header="Crear nueva categoría">
-                <div class="flex justify-content-center align-items-center gap-2">
-                    <p-floatLabel>
-                        <input pInputText id="on_label" autocomplete="off" [(ngModel)]="categoria" name="categoria" />
-                        <label for="on_label">Categoría</label>
-                    </p-floatLabel>
-
-                    <p-button (click)="crearYAgregarCategoria()" label="Agregar" styleClass="p-button-sm" />
+                <div class="mt-4">
+                    <label>Disponible</label>
+                    <p-toggleButton [(ngModel)]="kitEnEdicion.disponible" name="disponible" onLabel="Sí" offLabel="No"
+                        class="w-full" />
                 </div>
             </p-card>
-        </div>
-
-
-        <div class="col-12">
-            <p-card header="Categorías y productos">
-
-
-                <div *ngFor="let categoria of kitJson.categorias; let i = index" class="mb-4">
-                    <div class="flex justify-content-between align-items-center mb-2" style="background-color: pink;">
-                        <h5 class="m-0">{{ categoria.nombre }}</h5>
-                        <button class="p-button-sm p-button-danger" (click)="eliminarCategoriaDelKit(i)">
-                            <i class="pi pi-trash"></i>
-                        </button>
-                    </div>
 
 
 
-                    <!-- Agregar producto -->
-                    <div class="flex gap-2 align-items-center mb-2">
-                        <p-dropdown [options]="productosDropdown" [(ngModel)]="categoria.productoSeleccionado"
-                            optionLabel="label" placeholder="Selecciona producto" styleClass="w-12 md:w-6"></p-dropdown>
 
-                        <p-inputNumber [(ngModel)]="categoria.cantidadSeleccionada" placeholder="Cantidad" [min]="1"
-                            [max]="100" styleClass="w-4"></p-inputNumber>
+            <!--imagenes-->
 
-                        <p-button icon="pi pi-plus" (click)="agregarProductoACategoria(categoria)" label="Agregar"
-                            styleClass="p-button-sm"></p-button>
-                    </div>
-
-                    <!-- Productos actuales -->
-                    <ul class="list-none pl-3">
-                        <li *ngFor="let producto of categoria.productos"
-                            class="flex justify-content-between align-items-center mb-2">
-                            <div>
-                                {{ getNombreProducto(producto.id) }} (x{{ producto.cantidad }})
-                            </div>
-                            <button class="p-button-sm p-button-danger"
-                                (click)="eliminarProductoDeCategoria(categoria.nombre, producto.id)">
-                                <i class="pi pi-trash"></i>
-                            </button>
-                        </li>
-                    </ul>
-                </div>
-
-            </p-card>
-        </div>
-
-        <div class="col-12">
-            <p-card header="Imágenes actuales">
+            <p-card header="Imágenes" class="mb-4">
                 <div class="grid">
-                    <div class="col-6 md:col-3" *ngFor="let img of getImagenesArray()">
-                        <div class="text-center p-2 border-1 surface-border border-round">
-                            <img [src]="img" alt="Imagen del kit" class="w-full h-10rem object-contain mb-2" />
-                            <p-button icon="pi pi-trash" [loading]="loading" label="Eliminar" (click)="eliminarImagen(img)"></p-button>
+                    <div *ngFor="let image of kitEnEdicion.imagenesArray; let i = index">
+                        <!-- Contenedor fijo -->
+                        <div class="relative border-round inline-block p-2">
+                            <!-- P-Image con object-fit: contain -->
+                            <p-image [src]="apiUrl + 'uploads/kit_' + kitEnEdicion.id + '/' + image" alt="Image"
+                                height="100rem"></p-image>
+
+                            <button pButton icon="pi pi-trash" class="p-button-rounded p-button-sm absolute"
+                                style="top:50%; left:50%; transform: translate(-50%, -50%);"
+                                (click)="removeImage(i)"></button>
                         </div>
                     </div>
                 </div>
-
             </p-card>
+
+
+
+
+            <div class="col-12 md:col-12">
+                <p-card>
+                    <div class="card">
+                        <div class="card">
+                            <p-fileupload name="file" [url]="imageUploadsUrl + kitEnEdicion.id"
+                                (onUpload)="onUpload($event)" [auto]="true" [multiple]="false" accept="image/*"
+                                maxFileSize="3000000" mode="advanced">
+                                <ng-template #empty>
+                                    <div>Arrastra y suelta archivos para subirlos.</div>
+                                </ng-template>
+                            </p-fileupload>
+                        </div>
+                    </div>
+                </p-card>
+            </div>
+
+
+
+
+            <!-- <div class="p-fluid pl-4">
+                <h4>Productos Estáticos</h4>
+                <div *ngFor="let prod of productosEstaticos; let i = index" class="p-grid mb-3">
+                    <div class="col-12 md:col-5">
+                        <p-dropdown [options]="catalogoProductos" optionValue="id" optionLabel="nombre"
+                            [(ngModel)]="prod.IdProducto" [ngModelOptions]="{standalone: true}">
+                        </p-dropdown>
+                    </div>
+
+                    <div class="col-12 md:col-4">
+                        <p-inputNumber [(ngModel)]="prod.Cantidad" [ngModelOptions]="{standalone: true}"
+                            placeholder="Cantidad" [useGrouping]="false">
+                        </p-inputNumber>
+                    </div>
+                    <div class="col-12 md:col-3">
+                        <p-button icon="pi pi-trash" severity="danger" (click)="eliminarEstatico(i)">
+                        </p-button>
+                    </div>
+                </div>
+
+                <p-button label="Agregar Producto Estático" icon="pi pi-plus" (click)="agregarEstatico()"
+                    class="mb-4"></p-button>
+
+                <h4 class="mt-4">Opciones de Selección</h4>
+                <div *ngFor="let opcion of opcionesSeleccion; let i = index" class="mb-4">
+                    <div class="field">
+                        <p-floatLabel>
+                            <input pInputText id="titulo{{i}}" [(ngModel)]="opcion.titulo"
+                                [ngModelOptions]="{standalone: true}" />
+                            <label for="titulo{{i}}">Título (Toallas, Tampones, etc.)</label>
+                        </p-floatLabel>
+                    </div>
+
+                    <div *ngFor="let p of opcion.productos; let j = index" class="p-grid mb-2">
+                        <div class="col-12 md:col-10">
+
+                            <p-dropdown [options]="catalogoProductos" optionLabel="nombre" optionValue="id"
+                                [(ngModel)]="p.ProductoId" [ngModelOptions]="{ standalone: true }">
+                            </p-dropdown>
+
+
+
+                            <p-inputNumber [(ngModel)]="p.Cantidad" [ngModelOptions]="{standalone: true}"
+                                placeholder="Cantidad" [useGrouping]="false">
+                            </p-inputNumber>
+
+                        </div>
+                        <div class="col-12 md:col-2">
+                            <p-button icon="pi pi-trash" severity="danger" (click)="eliminarProductoOpcion(i, j)">
+                            </p-button>
+                        </div>
+                    </div>
+
+                    <p-button label="Agregar producto" icon="pi pi-plus" (click)="agregarProductoOpcion(i)"
+                        class="mb-3"></p-button>
+                    <p-divider></p-divider>
+                </div>
+
+                <p-button label="Agregar grupo de selección" icon="pi pi-plus-circle" (click)="agregarOpcion()"
+                    class="mb-4"></p-button>
+
+                <div class="mt-4 text-center">
+                    <p-button type="submit" label="Guardar Kit" icon="pi pi-save" class="p-button-success"></p-button>
+                </div>
+            </div> -->
+
+
+
+
+
         </div>
-
-
-        <div class="col-12 mt-4">
-            <p-card header="Subir imágenes al kit">
-                <p-fileUpload name="file" [url]="apiUrl + 'Images/AgregarImagenesKit/' + idKit"
-                    (onUpload)="imagenSubida($event)" [auto]="true" [multiple]="false" accept="image/*"
-                    maxFileSize="3000000" mode="advanced">
-                    <ng-template #empty>
-                        <div class="text-center">Arrastra o selecciona una imagen para subir</div>
-                    </ng-template>
-                </p-fileUpload>
-            </p-card>
-        </div>
-
-
-
-
-
-    </p-dialog>
-</div>
+    </div>
+</p-dialog>

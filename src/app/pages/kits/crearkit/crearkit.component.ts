@@ -470,24 +470,26 @@ export class CrearkitComponent {
 
   guardarKit() {
     this.kit.categoriasJson = JSON.stringify(this.kitJson);
-    console.log(this.kit)
-    this.productService.createKit(this.kit).subscribe({
-      next: data => {
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Éxito',
-          detail: 'Se creo correctamente'
-        });
+    console.log(this.kit);
 
-      },
-      error: err => {
-        this.messageService.add({
-          severity: 'warn',
-          summary: 'Error',
-          detail: 'Intenta nuevamente'
-        });
-      }
-    })
+    // this.productService.createKit(this.kit).subscribe({
+    //   next: data => {
+    //     this.messageService.add({
+    //       severity: 'success',
+    //       summary: 'Éxito',
+    //       detail: 'Se creo correctamente'
+    //     });
+
+    //   },
+    //   error: err => {
+    //     this.messageService.add({
+    //       severity: 'warn',
+    //       summary: 'Error',
+    //       detail: 'Intenta nuevamente'
+    //     });
+    //   }
+    // })
+
   }
 
   calcularDescuento() {

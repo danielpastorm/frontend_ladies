@@ -28,10 +28,10 @@
                 <td>{{ product.nombreKit }}</td>
                 <td><img [src]="defaultImage" width="50" class="shadow-lg" /></td>
                 <td>{{ product.total | currency : 'MXN' }}</td>
-                <td>{{ product.frecuenciaEnvio == "mensual" ? product.frecuenciaEnvio : "Compra única" }}</td>
+                <td>{{ product.frecuenciaEnvio ? "Compra única" : "Mensual" }}</td>
                 <td>
                     <p-tag [value]="product.inventoryStatus" [severity]="getSeverity(product)"
-                        [textContent]="getText(product)" />
+                        [textContent]="product.estatus" />
                 </td>
                 <td>{{ product.notasAdmin }}</td>
 
@@ -47,18 +47,12 @@
             <tr>
                 <th pSortableColumn="id">Producto <p-sortIcon field="price" /></th>
                 <th pSortableColumn="customer">Cantidad <p-sortIcon field="customer" /></th>
-                <th pSortableColumn="amount">Costo <p-sortIcon field="amount" /></th>
             </tr>
         </ng-template>
         <ng-template #body let-order>
             <tr>
-                <td>{{ order.Nombre }}</td>
-                <td>{{ order.Cantidad }}</td>
-                <td>
-                    {{ order.Precio != 0 ? (order.Precio | currency : 'MXN') : 'Incluido en el Kit' }}
-                </td>
-
-
+                <td>{{ order.nombre }}</td>
+                <td>{{ order.cantidad }}</td>
             </tr>
         </ng-template>
         <ng-template #emptymessage>

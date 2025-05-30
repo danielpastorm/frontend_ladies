@@ -1,0 +1,162 @@
+.imagenmodelo {
+  
+    background-color: #FBD9E8;
+    height: 300px;
+    display: flex;
+    align-items: center;
+    /* centra verticalmente */
+}
+
+.img-contain {
+    max-height: 100%;
+    max-width: 100%;
+    object-fit: contain;
+    display: block;
+    /* quita el espacio inline */
+    margin: 0;
+    padding: 0;
+}
+
+/* * {
+    outline: 1px solid red;
+  }
+   */
+
+
+.slogan {
+    font-family: 'Playfair Display', serif;
+    font-weight: 200;
+    font-size: 1.5rem;
+}
+
+.texto-secundario {
+    font-family: 'Playfair Display', serif;
+    font-weight: 200;
+    font-size: 2rem;
+    color: #8A1E2E;
+}
+
+
+
+.card-producto {
+    background-color: #fdecec; /* color de fondo suave */
+    border: 1px solid #f8c0c0;
+    transition: transform 0.3s ease;
+  }
+  
+  .card-producto:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+  
+  .img-producto {
+    width: 100%;
+    max-height: 180px;
+    object-fit: contain;
+    border-radius: 0.5rem;
+  }
+  
+  .nombre-producto {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.1rem;
+    color: #000;
+    margin-bottom: 0.5rem;
+  }
+  
+  .precio-producto {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    color: #7a1e2d;
+    font-weight: bold;
+  }
+  
+
+  .titulo-seccion {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #7a1e2d; /* tono vino como en tu diseño */
+  }
+  
+
+
+  .red-social {
+    font-size: 2rem;
+    color: #7a1e2d;
+    transition: transform 0.3s ease, color 0.3s ease;
+  }
+  
+  .red-social:hover {
+    transform: scale(1.2);
+    color: #e91e63;
+  }
+  
+  .tiktok i::before {
+    content: '\e93c'; /* usa video como ícono tiktok alternativo */
+  }
+
+
+  
+
+  
+  .icono-red {
+    width: 20px;
+    height: 20px;
+    fill: #7a1e2d;
+    vertical-align: middle; /* Alinea con texto y otros íconos */
+    display: inline-block;   /* Asegura comportamiento similar a <i> */
+  }
+  
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  .btn-redonda {
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  
+  
+
+
+
+
+
+  @media (max-width: 768px) {
+    /* 1) Contenedor principal en columna */
+    .imagenmodelo {
+      display: flex !important;
+      flex-direction: column;
+      height: auto; /* deja que crezca según el contenido */
+    }
+  
+    /* 2) Cada “col” ocupa 100% */
+    .imagenmodelo .col-12 {
+      flex: 0 0 100%;
+      max-width: 100%;
+    }
+  
+    /* 3) Orden de los bloques */
+    .imagen-wrapper {
+      order: 1;            /* primero: emergencia + foto */
+      flex-direction: column; /* pila botón encima de imagen */
+      align-items: center; /* centra ambos */
+      margin-bottom: 1rem; /* un poco de espacio abajo */
+    }
+    .imagen-wrapper p-button {
+      order: 1;            /* primero dentro del wrapper */
+      margin-bottom: 1rem; /* separa del img */
+    }
+    .imagen-wrapper img {
+      order: 2;
+      max-width: 80%;      /* opcional: ajusta tamaño */
+      height: auto;
+    }
+  
+    .slogan-wrapper {
+      order: 2;            /* después del bloque imagen-wrapper */
+      padding: 0 1rem;     /* opcional: márgenes horizontales */
+      text-align: center;
+    }
+  }
+  

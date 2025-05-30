@@ -52,10 +52,10 @@ export class CarritoComponent {
     this.cartService.getCart(localStorage.getItem("Id") ?? "").subscribe(data => {
       this.cartItems = data.map((item: { id: any; nombre: string; descripcion: string; precioUnitario: any; cantidad: any; }) => ({
         id: item.id,
-        name: item.nombre, // ✅ Ahora usamos directamente el Nombre del producto o kit
-        description: item.descripcion, // ✅ Usamos la Descripción que viene en la respuesta
-        price: item.precioUnitario,
-        quantity: item.cantidad
+        nombre: item.nombre, // ✅ Ahora usamos directamente el Nombre del producto o kit
+        descripcion: item.descripcion, // ✅ Usamos la Descripción que viene en la respuesta
+        precio: item.precioUnitario,
+        cantidad: item.cantidad
       }));
     });
   }
@@ -63,7 +63,7 @@ export class CarritoComponent {
 
   // Calcular el total del carrito
   getTotal(): number {
-    return this.cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    return this.cartItems.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
   }
 
   // Modificar la cantidad de un producto en el carrito
@@ -83,10 +83,10 @@ export class CarritoComponent {
 
     this.cartItems.push({
       id: Math.random().toString(36).substr(2, 9), // ID temporal
-      name: this.newProduct.name,
-      description: this.newProduct.description,
-      price: this.newProduct.price,
-      quantity: this.newProduct.quantity
+      nombre: this.newProduct.name,
+      descripcion: this.newProduct.description,
+      precio: this.newProduct.price,
+      cantidad: this.newProduct.quantity
     });
 
     this.newProduct = { name: '', description: '', price: null, quantity: 1 }; // Reiniciar formulario
@@ -95,6 +95,11 @@ export class CarritoComponent {
   async pagar() {
     this.loading = true;
     const total = this.getTotal();
+    if(total < 100){
+      this.messageService.add({ severity: 'info', summary: 'Agrega más articulos para continuar', detail: 'Compra minima de $100 pesos' });
+      this.loading = false;
+      return;
+    }
 
     await this.guardarPedido();
 

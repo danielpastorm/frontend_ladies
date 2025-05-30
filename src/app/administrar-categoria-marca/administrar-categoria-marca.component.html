@@ -1,0 +1,382 @@
+<!-- overlay de cargando -->
+<div *ngIf="cargando" class="loading-overlay">
+    <p-progressSpinner></p-progressSpinner>
+</div>
+
+<!-- si hay kits muestra todos los kits -->
+<div class="flex flex-wrap justify-content-center gap-4 p-4" *ngIf="kits.length > 0">
+
+    <!-- Card extra: Personaliza tu kit -->
+    <div class="flex">
+        <p-card [style]="{ width: '20rem', overflow: 'hidden' }" class="text-center">
+            <ng-template #header>
+                <img [src]="logoUrl" alt="Personaliza tu kit" class="w-full object-contain p-3" />
+            </ng-template>
+
+            <ng-template #title>
+                Personaliza tu kit 💖
+            </ng-template>
+
+            <p class="text-gray-600">
+                Elige cada producto a tu medida y crea un kit único para ti.
+            </p>
+
+            <div class="flex gap-2 mt-3">
+                <p-button label="Personalizar ahora" variant="outlined" icon="pi pi-cog" class="w-full"
+                    (click)="PersonalizarKit()"></p-button>
+            </div>
+        </p-card>
+    </div>
+
+    <!-- Resto de tus kits -->
+    <div *ngFor="let kit of kits" class="flex">
+        <p-card [header]="kit.nombre" [subheader]="kit.descripcion" class="text-center"
+            [style]="{ width: '20rem', overflow: 'hidden' }">
+
+            <div class="precio-container">
+                <!-- Badge de descuento -->
+
+
+                <!-- Precio original tachado -->
+                <span *ngIf="kit.descuento > 0" class="precio-original">
+                    {{ kit.precio | currency:'MXN' }}
+                </span>
+
+
+                <span *ngIf="kit.descuento > 0" class="">
+
+                    {{ kit.precioConDescuento | currency:'MXN' }}
+                </span>
+
+                <span *ngIf="kit.descuento > 0" class="badge-descuento">
+                    <p-badge [value]=" '-' + kit.descuento + '%' " severity="success">
+                    </p-badge>
+                </span>
+
+
+
+                <span *ngIf="kit.descuento == 0" style="font-size: large;">
+                    Personalizalo desde: {{ kit.precio | currency:'MXN' }}
+                </span>
+
+                <!-- Precio con descuento
+          <span *ngIf="kit.descuento != 0" class="precio-con-descuento">
+            {{ kit.precioConDescuento | currency:'MXN' }}
+          </span> -->
+            </div>
+
+
+            <!-- Carrusel de imágenes -->
+            <p-galleria *ngIf="kit.imagenesArray.length > 0" [value]="kit.imagenesArray" [showItemNavigators]="true"
+                [showThumbnails]="false" [circular]="true" [numVisible]="1" [containerStyle]="{ 'max-width': '640px' }">
+                <ng-template #item let-item>
+                    <img [src]="obtenerUrlImagen(kit.id, item)" style="width: 100%; display: block;" />
+                </ng-template>
+            </p-galleria>
+
+            <!-- Categorías -->
+            <!-- <div *ngFor="let categoria of kit.categorias" class="mt-3 text-left">
+          <h5>{{ categoria.nombre }}</h5>
+          <ul>
+            <li *ngFor="let producto of categoria.productos">
+              {{ getNombreProductos(producto.id) }} (x{{ producto.cantidad }})
+            </li>
+          </ul>
+        </div> -->
+
+            <div class="flex gap-2 mt-3">
+                <p-button label="Personalizar" rounded="true" icon="pi pi-check" class="w-full"
+                    (click)="seleccionarKit(kit)"></p-button>
+            </div>
+
+        </p-card>
+    </div>
+
+</div>
+
+
+<!-- muestra mensaje de que no hay kits, probablemente no se use -->
+<p *ngIf="!kits || kits.length === 0" class="col-12 text-center text-gray-500">
+    No hay kits disponibles
+</p>
+
+<!-- modal de kit seleccionado -->
+<p-dialog header="Personaliza tu Kit" [(visible)]="displayModal" [modal]="true" *ngIf="kit_auxiliar"
+    [breakpoints]="{ '1199px': '75vw', '575px': '90vw' }" [style]="{ width: '50vw' }" [draggable]="false"
+    [resizable]="false">
+    <div class="grid">
+
+        <div class="col-12 md:col-12 lg:col-12">
+            <div class="text-center p-3 border-round-sm bg-primary font-bold">Selecciona tu opcion de protección <br>Tu
+                Kit incluye 20 piezas del producto que selecciones</div>
+        </div>
+
+        <div class="col-12 md:col-12 lg:col-12 p-5">
+            <p-treeselect class="md:w-80 w-full" appendTo="body" [scrollHeight]="'250px'" containerStyleClass="w-full"
+                [(ngModel)]="selectedNodes" [options]="nodes" placeholder="Selecciona una opción" />
+        </div>
+
+        <div class="col-12 md:col-12 lg:col-12">
+            <div class="text-center p-3 border-round-sm bg-primary font-bold">Productos incluidos en tu kit</div>
+        </div>
+
+        <!-- Grid de productos estáticos -->
+        <p-carousel [value]="kit_auxiliar.productosEstaticos" [numVisible]="3" [numScroll]="1"
+            [responsiveOptions]="responsiveOptions">
+
+            <!-- Aquí es clave: pTemplate="item" y let-pe (elemento de productosEstaticos) -->
+            <ng-template pTemplate="item" let-pe>
+                <div class="border-surface-200 dark:border-surface-700 rounded m-2 p-4">
+                    <!-- Imagen principal del producto -->
+                    <!-- <div class="mb-4">
+                        <img [src]="'/assets/' + getPrimaryImage(pe.productoId)"
+                            [alt]="getProductData(pe.productoId)?.nombre"
+                            class="w-full h-32 object-cover rounded-t-lg" />
+                    </div> -->
+
+                    <div class="mb-4">
+                        <img [src]="'https://ladies-first.shop/uploads/15/Kotex%20Pantiprotectores%20-%20Anatomica%20con%20alas%20Flujo%20abundante.jpg'"
+                            [alt]="getProductData(pe.productoId)?.nombre"
+                            class="w-full h-32 object-cover rounded-t-lg" />
+                    </div>
+
+                    <!-- Nombre -->
+                    <div class="mb-2 font-medium text-lg">
+                        {{ getProductData(pe.productoId)?.nombre }}
+                    </div>
+
+                    <!-- Precio y cantidad -->
+                    <div class="flex justify-between items-center">
+                        <!-- <div class="font-semibold text-xl">
+                            {{ getProductData(pe.productoId)?.precio | currency:"MXN" }}
+                        </div> -->
+                        <div class="text-sm text-gray-600">
+                            Cantidad: {{ pe.cantidad }}
+                        </div>
+                    </div>
+
+
+
+                </div>
+            </ng-template>
+        </p-carousel>
+
+
+
+        <div class="col-12 md:col-12 lg:col-12">
+            <div class="text-center p-3 border-round-sm bg-primary font-bold">Productos Extras <br>(opcionales)</div>
+        </div>
+
+
+
+        <div class="col-12 md:col-12 lg:col-12">
+            <p-multiselect [options]="productos" [(ngModel)]="selectedExtraProducts" optionLabel="name"
+                placeholder="Selecciona un producto extra" [maxSelectedLabels]="3" styleClass="w-full md:w-80" />
+
+        </div>
+
+
+        <div class="col-12 md:col-12 lg:col-12 flex justify-content-center">
+            <p-button label="Suscribirse" (onClick)="Suscribirse()" [loading]="loading" [rounded]="true" />
+        </div>
+    </div>
+</p-dialog>
+
+
+
+<!--modal de extras-->
+<p-dialog header="Personaliza tu Kit, Precio: {{precioExtras | currency:'MXN' }}" [(visible)]="modalExtras"
+    [modal]="true" *ngIf="kit_auxiliar" [breakpoints]="{ '1199px': '75vw', '575px': '90vw' }"
+    [style]="{ width: '50vw' }" [draggable]="false" [resizable]="false">
+    <div class="grid">
+
+        <div class="col-12 md:col-12 lg:col-12">
+            <div class="text-center p-3 border-round-sm bg-primary font-bold">Indica cuantas unidades extra necesitas
+            </div>
+        </div>
+
+        <div class="col-12 md:col-12 lg:col-12">
+            <table class="w-full">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Precio</th>
+                        <th>Cantidad</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let ex of productosExtra; let i = index">
+                        <td>{{ ex.nombre }}</td>
+                        <td>{{ ex.precio | currency: 'MXN' }}</td>
+                        <td>
+                            <p-inputNumber [(ngModel)]="productosExtra[i].cantidad" [useGrouping]="false" [min]="1"
+                                (onInput)="confirmarExtras()">
+                            </p-inputNumber>
+                        </td>
+                        <td>{{ (ex.precio * ex.cantidad) | currency:'MXN' }}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+
+        </div>
+
+        <div class="col-12 md:col-12 lg:col-12 flex justify-content-center">
+            <p-button label="Suscribirse" (onClick)="trysuscribe()" [loading]="loading" [rounded]="true" />
+        </div>
+
+    </div>
+</p-dialog>
+
+
+
+<p-dialog header="Personaliza tu Kit" [(visible)]="displayModal" [modal]="true" *ngIf="kit_auxiliar"
+    [breakpoints]="{ '1199px': '75vw', '575px': '90vw' }" [style]="{ width: '50vw' }" [draggable]="false"
+    [resizable]="false">
+    <div class="grid">
+
+        <div class="col-12 md:col-12 lg:col-12">
+            <div class="text-center p-3 border-round-sm bg-primary font-bold">Selecciona tu opcion de protección <br>Tu
+                Kit incluye 20 piezas del producto que selecciones</div>
+        </div>
+
+        <div class="col-12 md:col-12 lg:col-12 p-5">
+            <p-treeselect class="md:w-80 w-full" appendTo="body" [scrollHeight]="'250px'" containerStyleClass="w-full"
+                [(ngModel)]="selectedNodes" [options]="nodes" placeholder="Selecciona una opción" />
+        </div>
+
+        <div class="col-12 md:col-12 lg:col-12">
+            <div class="text-center p-3 border-round-sm bg-primary font-bold">Productos incluidos en tu kit</div>
+        </div>
+
+        <!-- Grid de productos estáticos -->
+        <p-carousel [value]="kit_auxiliar.productosEstaticos" [numVisible]="3" [numScroll]="1"
+            [responsiveOptions]="responsiveOptions">
+
+            <!-- Aquí es clave: pTemplate="item" y let-pe (elemento de productosEstaticos) -->
+            <ng-template pTemplate="item" let-pe>
+                <div class="border-surface-200 dark:border-surface-700 rounded m-2 p-4">
+                    <!-- Imagen principal del producto -->
+                    <!-- <div class="mb-4">
+                        <img [src]="'/assets/' + getPrimaryImage(pe.productoId)"
+                            [alt]="getProductData(pe.productoId)?.nombre"
+                            class="w-full h-32 object-cover rounded-t-lg" />
+                    </div> -->
+
+                    <div class="mb-4">
+                        <img [src]="'https://ladies-first.shop/uploads/15/Kotex%20Pantiprotectores%20-%20Anatomica%20con%20alas%20Flujo%20abundante.jpg'"
+                            [alt]="getProductData(pe.productoId)?.nombre"
+                            class="w-full h-32 object-cover rounded-t-lg" />
+                    </div>
+
+                    <!-- Nombre -->
+                    <div class="mb-2 font-medium text-lg">
+                        {{ getProductData(pe.productoId)?.nombre }}
+                    </div>
+
+                    <!-- Precio y cantidad -->
+                    <div class="flex justify-between items-center">
+                        <!-- <div class="font-semibold text-xl">
+                            {{ getProductData(pe.productoId)?.precio | currency:"MXN" }}
+                        </div> -->
+                        <div class="text-sm text-gray-600">
+                            Cantidad: {{ pe.cantidad }}
+                        </div>
+                    </div>
+
+
+
+                </div>
+            </ng-template>
+        </p-carousel>
+
+
+
+        <div class="col-12 md:col-12 lg:col-12">
+            <div class="text-center p-3 border-round-sm bg-primary font-bold">Productos Extras <br>(opcionales)</div>
+        </div>
+
+
+
+        <div class="col-12 md:col-12 lg:col-12">
+            <p-multiselect [options]="productos" [(ngModel)]="selectedExtraProducts" optionLabel="name"
+                placeholder="Selecciona un producto extra" [maxSelectedLabels]="3" styleClass="w-full md:w-80" />
+
+        </div>
+
+
+        <div class="col-12 md:col-12 lg:col-12 flex justify-content-center">
+            <p-button label="Suscribirse" (onClick)="Suscribirse()" [loading]="loading" [rounded]="true" />
+        </div>
+    </div>
+</p-dialog>
+
+
+
+<!--modal de extras-->
+<p-dialog header="Personaliza tu Kit, Precio: {{precioExtras | currency:'MXN' }}" [(visible)]="personalizarKit"
+    [modal]="true" [breakpoints]="{ '1199px': '75vw', '575px': '90vw' }" [style]="{ width: '50vw', height: '100vw' }"
+    [draggable]="false" [resizable]="false">
+    <div class="grid">
+        <div class="col-12 md:col-12 lg:col-12">
+            <div class="text-center p-3 border-round-sm bg-primary font-bold">Selecciona los productos que te gustaria
+                recibir <br>(Minimo $150)</div>
+        </div>
+
+        <div class="col-12 md:col-12 lg:col-12">
+            <p-multiselect [options]="productos" [(ngModel)]="kit_personalizado.opcionesSeleccion" optionLabel="name"
+                placeholder="Selecciona un producto(s)" [maxSelectedLabels]="3" styleClass="w-full md:w-80" />
+
+        </div>
+
+        <div class="col-12 md:col-12 lg:col-12 flex justify-content-center">
+            <p-button label="Suscribirse" (onClick)="personalizar()" [loading]="loading" [rounded]="true" />
+        </div>
+
+    </div>
+</p-dialog>
+
+<p-dialog header="Personaliza tu Kit, Precio: {{totalPersonal | currency:'MXN' }}" [(visible)]="abrirPersonalizado"
+    [modal]="true" *ngIf="kit_personalizado.opcionesSeleccion" [breakpoints]="{ '1199px': '75vw', '575px': '90vw' }"
+    [style]="{ width: '50vw' }" [draggable]="false" [resizable]="false">
+    <div class="grid">
+
+        <div class="col-12 md:col-12 lg:col-12">
+            <div class="text-center p-3 border-round-sm bg-primary font-bold">Indica cuantas unidades extra necesitas
+            </div>
+        </div>
+
+        <div class="col-12 md:col-12 lg:col-12">
+            <table class="w-full">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Precio</th>
+                        <th>Cantidad</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let ex of kit_personalizado.opcionesSeleccion let i = index">
+                        <td>{{ ex.name }}</td>
+                        <td>{{ ex.precio | currency: 'MXN' }}</td>
+                        <td>
+                            <p-inputNumber [(ngModel)]="ex.cantidad" [useGrouping]="false" [min]="1"
+                                (onInput)="calcularPersonal()">
+                            </p-inputNumber>
+                        </td>
+                        <td>{{ (ex.precio * ex.cantidad) | currency:'MXN' }}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+
+        </div>
+
+        <div class="col-12 md:col-12 lg:col-12 flex justify-content-center">
+            <p-button label="Suscribirse" *ngIf="totalPersonal >= 150" (onClick)="suscribirsePersonalizado()" [loading]="loading" [rounded]="true" />
+        </div>
+
+    </div>
+</p-dialog>

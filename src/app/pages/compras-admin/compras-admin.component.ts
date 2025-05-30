@@ -149,7 +149,7 @@ export class ComprasAdminComponent {
     //     return 'danger'
     // }
 
-    if (product.enviada) {
+    if (product.estatus == "Pendiente") {
       return 'info';
     }
     if (product.cancelada) {
@@ -299,8 +299,8 @@ export class ComprasAdminComponent {
       Id: this.productoSeleccionado.id,
       Enviada: false,
       Cancelada: true,
-      MotivoCancelacion: "Prueba",
-      NotasAdmin: ""
+      MotivoCancelacion: "Cancelada", //este sera como el estatus
+      NotasAdmin: this.NotasAdmin
     }
 
     this.productService.cambiarEstadoPedido(CambioStatusDTO).subscribe({
@@ -324,7 +324,7 @@ export class ComprasAdminComponent {
       Id: this.productoSeleccionado.id,
       Enviada: false,
       Cancelada: false,
-      MotivoCancelacion: "",
+      MotivoCancelacion: "Preparando",
       NotasAdmin: "Preparando"
     }
 
@@ -348,7 +348,7 @@ export class ComprasAdminComponent {
       Id: this.productoSeleccionado.id,
       Enviada: true,
       Cancelada: false,
-      MotivoCancelacion: "",
+      MotivoCancelacion: "Enviada",
       NotasAdmin: this.textoInput
     }
 
@@ -372,7 +372,7 @@ export class ComprasAdminComponent {
       Id: this.productoSeleccionado.id,
       Enviada: false,
       Cancelada: false,
-      MotivoCancelacion: "",
+      MotivoCancelacion: "Entregada",
       NotasAdmin: "Entregada"
     }
 
@@ -431,8 +431,8 @@ export class ComprasAdminComponent {
 
 
   getTextcontent(product: any): string {
-    if (product.enviada) {
-      return 'Enviada';
+    if (product.estatus == "Pendiente") {
+      return 'Pendiente';
     }
     if (product.cancelada) {
       return 'Cancelada'
@@ -451,12 +451,12 @@ export class ComprasAdminComponent {
   }
 
 
-  getNombre(id: string): string{
+  getNombre(id: string): string {
     var nombre = this.usuarios.find(q => q.id == id)?.nombre;
     return nombre ?? '';
   }
 
-  getId(id: string): string{
+  getId(id: string): string {
     var nombre = this.usuarios.find(q => q.id == id)?.idStripe;
     return nombre ?? '';
   }

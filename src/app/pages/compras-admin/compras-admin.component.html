@@ -4,10 +4,12 @@
     <p-table [value]="products" dataKey="id" [tableStyle]="{ 'min-width': '60rem' }" [expandedRowKeys]="expandedRows">
         <ng-template #caption>
             <div class="flex flex-wrap justify-end gap-2">
-                <p-button label="Expand All" icon="pi pi-plus" text (onClick)="expandAll()" />
-                <p-button label="Collapse All" icon="pi pi-minus" text (onClick)="collapseAll()" />
+                <p-button label="Expandir" icon="pi pi-plus" text (onClick)="expandAll()" />
+                <p-button label="Colapsar" icon="pi pi-minus" text (onClick)="collapseAll()" />
             </div>
         </ng-template>
+
+
         <ng-template #header>
             <tr>
                 <th style="width: 5rem"></th>
@@ -15,16 +17,15 @@
 
                 <th pSortableColumn="idUsuario">Nombre del cliente <p-sortIcon field="idUsuario" /></th>
 
-                <th pSortableColumn="nombreKit">Nombre <p-sortIcon field="name" /></th>
+                <th pSortableColumn="nombreKit">Nombre del Kit<p-sortIcon field="name" /></th>
 
-                <th pSortableColumn="esSuscripcion">Suscripción Activa <p-sortIcon field="esSuscripcion" /> </th>
                 <th pSortableColumn="total">Precio <p-sortIcon field="total" /></th>
                 <th pSortableColumn="frecuenciaEnvio">Frecuencia <p-sortIcon field="frecuenciaEnvio" /></th>
                 <th pSortableColumn="fechaCreacion">Fecha de pedido <p-sortIcon field="fechaCreacion" /></th>
                 <th pSortableColumn="notasAdmin">Comentarios Admin <p-sortIcon field="notasAdmin" /></th>
 
 
-                <th>Estatus</th>
+                <th pSortableColumn="estatus">Estatus <p-sortIcon field="estatus" /></th>
                 <th> Cambiar Estatus </th>
 
             </tr>
@@ -40,29 +41,26 @@
 
                 <td>{{ getNombre(product.idUsuario) }}</td>
 
-                  
+
                 <td>{{ product.nombreKit }}</td>
-                <td>
-                    {{
-                    product.esSuscripcion
-                    ? (product.activa ? 'Suscripción activa' : 'Cancelada')
-                    : 'No aplica'
-                    }}
-                </td>
+
+
                 <td>{{ product.total | currency : 'MXN' }}</td>
-                <td>{{ product.frecuenciaEnvio == "mensual" ? product.frecuenciaEnvio : "Compra única" }}</td>
+
+                <td>{{ product.frecuenciaEnvio ? "Compra única" : "Mensual"}}</td>
+
                 <td>
-                    {{product.fechaCreacion | date}}
-                 </td>
-                 <td>
-                   {{product.notasAdmin}}
+                    {{product.fechaDeRegistro | date}}
                 </td>
                 <td>
-                    <p-tag [value]="product.inventoryStatus" [severity]="getSeverity(product)"
-                        [textContent]="getTextcontent(product)" />
+                    {{product.notasAdmin}}
+                </td>
+                <td>
+                    <p-tag [value]="product.estatus" [severity]="getSeverity(product)"
+                        [textContent]="product.estatus" />
                 </td>
 
-               
+
 
                 <td class="flex align-items-center">
                     <p-button icon="pi pi-pencil" (onClick)="abrirCambioEstatus(product)"
@@ -75,7 +73,7 @@
                     </p-button>
                 </td>
 
-                
+
 
             </tr>
         </ng-template>
@@ -87,18 +85,15 @@
                         <p-table [value]="product.productos" dataKey="id">
                             <ng-template #header>
             <tr>
-                <th pSortableColumn="id">Producto <p-sortIcon field="price" /></th>
-                <th pSortableColumn="customer">Cantidad <p-sortIcon field="customer" /></th>
-                <th pSortableColumn="amount">Costo <p-sortIcon field="amount" /></th>
+                <th pSortableColumn="nombre">Producto <p-sortIcon field="nombre" /></th>
+                <th pSortableColumn="cantidad">Cantidad <p-sortIcon field="cantidad" /></th>
             </tr>
         </ng-template>
         <ng-template #body let-order>
             <tr>
-                <td>{{ order.Nombre }}</td>
-                <td>{{ order.Cantidad }}</td>
-                <td>
-                    {{ order.Precio != 0 ? (order.Precio | currency : 'MXN') : 'Incluido en el Kit' }}
-                </td>
+                <td>{{ order.nombre }}</td>
+                <td>{{ order.cantidad }}</td>
+               
 
 
             </tr>
@@ -124,17 +119,19 @@
         placeholder="Selecciona un estatus" class="w-full md:w-18rem" />
 
     <!-- Input si seleccionó "Enviada" -->
-    <div *ngIf="opcionSeleccionada === 'Enviada'" class="w-full mt-2">
+    <!-- <div *ngIf="opcionSeleccionada === 'Enviada'" class="w-full mt-2">
         <input pInputText class="w-full" [(ngModel)]="textoInput" placeholder="Ingresa la guía/comentarios" />
     </div>
 
     <p-floatlabel variant="on" class="mt-2" *ngIf="opcionSeleccionada === 'Cancelada'">
         <input pInputText id="on_label" [(ngModel)]="NotasAdmin" autocomplete="off" />
         <label for="on_label">Motivo de cancelación</label>
-    </p-floatlabel>
+    </p-floatlabel> -->
 
     <!-- Botón si eligió cualquier opción -->
-    <div *ngIf="opcionSeleccionada && (NotasAdmin.length > 5 || textoInput.length || opcionSeleccionada != 'Enviada'  && opcionSeleccionada != 'Cancelada' )"
+
+    <!-- *ngIf="opcionSeleccionada && (NotasAdmin.length > 5 || textoInput.length || opcionSeleccionada != 'Enviada'  && opcionSeleccionada != 'Cancelada' )" -->
+    <div 
         class="w-full flex justify-content-center mt-2">
         <p-button label="Guardar" (onClick)="guardarCambio()" class="w-full md:w-12rem" />
     </div>
@@ -142,7 +139,7 @@
 </p-dialog>
 
 
-<div class="card flex justify-center" >
+<div class="card flex justify-center">
     <p-dialog header="Información del Cliente" [modal]="true" [(visible)]="abrirInfoB" [style]="{ width: '50rem' }"
         [breakpoints]="{ '1199px': '75vw', '575px': '90vw' }" [maximizable]="true">
 

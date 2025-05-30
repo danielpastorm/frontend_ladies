@@ -1,12 +1,27 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
 import { Producto } from '../Data/producto.types';
-import { Categorias, Kit } from '../Data/kit.types';
+import { Categorias } from '../Data/kit.types'; //aqui estaba importado Kit
 import { KitDetail } from '../Data/kit.types';
 import { Kit_get } from '../Data/kit.types';
 import { environment } from '../../environments/environment';
 import { producto } from '../pages/kits/crearkit/crearkit.component';
+import { EditableRow } from 'primeng/table';
+import { Kit, KitDto } from '../Data/KitsModel';
+import { TreeNode } from 'primeng/api';
+
+interface Product {
+  id: number;
+  nombre: string;
+  descripcion: string;
+  imagenes: string;
+  precio: number;
+  disponible: boolean;
+  categoria: string | null;
+  marca: string | null;
+}
+
 
 
 export interface DynamicSubscriptionRequest {
@@ -31,6 +46,18 @@ export interface Usuario {
   idStripe: string;
   id: string;
   nombre: string;
+}
+
+export interface EditarMarcaCategoria {
+  Id: number;
+  Categoria: string;
+  Marca: string;
+  isCategoria: boolean;
+}
+export interface AgregarMarcaCategoria {
+  Categoria: string;
+  Marca: string;
+  isCategoria: boolean;
 }
 
 
@@ -58,6 +85,19 @@ export class ProductService {
     return this.http.get<Usuario[]>(`${this.apiUrl}CheckOut/getUsers`);
   }
 
+  AgregarMarcaCategoria(data: any, edit: boolean): Observable<any> {
+    return this.http.post<any>(
+      `${this.apiUrl}productos/CategoriasMarca?edit=${edit}`,
+      data
+    );
+  }
+
+  GetCategorias(): Observable<any> {
+    return this.http.get<any>(
+      `${this.apiUrl}productos/GetCategorias`
+    );
+  }
+
   getProductsMini(): Promise<Producto[]> {
     return this.http.get<Producto[]>(`${this.apiUrl}productos/listar`).toPromise()
       .then(data => data || [])
@@ -69,6 +109,10 @@ export class ProductService {
 
   getProducts(): Observable<Producto[]> {
     return this.http.get<Producto[]>(`${this.apiUrl}productos/listar`);
+  }
+
+  GetTree(): Observable<Product[]> {
+    return this.http.get<Product[]>(`${this.apiUrl}productos/listar`);
   }
 
 
@@ -202,7 +246,7 @@ export class ProductService {
 
   listSubscriptions(customerId: string): Observable<any> {
     const cleanedId = customerId.replace(/"/g, '');
-    return this.http.get<any>(`${this.apiUrl}CheckOut/list-subs?customerId=${cleanedId}`);
+    return this.http.get<any>(`${this.apiUrl}CheckOut/list-subs/${cleanedId}`);
   }
 
   cancelSubscription(subscriptionId: string): Observable<any> {
@@ -210,6 +254,77 @@ export class ProductService {
   }
 
   //retornar las compras del usuario
+
+  deleteProducto(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}productos/${id}`);
+  }
+
+  crearKit(kit: any): Observable<any> {
+    return this.http.post(this.apiUrl + "productos/CrearKit", kit);
+  }
+
+  getKitsNuevo(): Observable<KitDto[]> {
+    return this.http.get<KitDto[]>(`${this.apiUrl + "productos/Kitsnuevo"}`);
+  }
+
+
+  getTreeNodes(): Observable<TreeNode[]> {
+    return this.GetTree() // o getProducts()
+      .pipe(
+        map(products => this.buildTree(products))
+      );
+  }
+
+  private buildTree(products: Product[]): TreeNode[] {
+    // 1) Agrupa por categoría
+    console.log()
+    const byCategory = products.reduce((acc, p) => {
+      const cat = p.categoria || 'Sin categoría';
+      (acc[cat] ||= []).push(p);
+      return acc;
+    }, {} as Record<string, Product[]>);
+
+    const tree: TreeNode[] = [];
+
+    Object.entries(byCategory).forEach(([cat, prods], ci) => {
+      // 2) Dentro de cada categoría agrupa por marca
+      const byBrand = prods.reduce((acc, p) => {
+        const brand = p.marca || 'Sin marca';
+        (acc[brand] ||= []).push(p);
+        return acc;
+      }, {} as Record<string, Product[]>);
+
+      const brandNodes: TreeNode[] = [];
+
+      Object.entries(byBrand).forEach(([brand, items], bi) => {
+        // 3) Cada producto como nodo hoja
+        const productNodes = items.map((p, pi) => ({
+          key: `${ci}-${bi}-${pi}`,
+          label: p.nombre,
+          data: p.descripcion,
+          icon: 'pi pi-fw pi-file'
+        } as TreeNode));
+
+        brandNodes.push({
+          key: `${ci}-${bi}`,
+          label: brand,
+          data: `Marca: ${brand}`,
+          icon: 'pi pi-fw pi-tag',
+          children: productNodes
+        });
+      });
+
+      tree.push({
+        key: `${ci}`,
+        label: cat,
+        data: `Categoría: ${cat}`,
+        icon: 'pi pi-fw pi-folder',
+        children: brandNodes
+      });
+    });
+
+    return tree;
+  }
 
 
 
